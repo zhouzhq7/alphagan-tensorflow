@@ -73,34 +73,34 @@ def train():
 
     "generator loss"
 
-    g_loss1 = tf.nn.sigmoid_cross_entropy_with_logits(logits=d_logits_fake1,
-                                                             labels=tf.ones_like(d_logits_fake1))
+    g_loss1 = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=d_logits_fake1,
+                                                             labels=tf.ones_like(d_logits_fake1)))
 
-    g_loss2 = tf.nn.sigmoid_cross_entropy_with_logits(logits=d_logits_fake2,
-                                                             labels=tf.ones_like(d_logits_fake2))
+    g_loss2 = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=d_logits_fake2,
+                                                             labels=tf.ones_like(d_logits_fake2)))
 
     g_loss = reconstruction_loss + g_loss1 + g_loss2
 
     "discriminator loss"
 
-    d_loss1 = tf.nn.sigmoid_cross_entropy_with_logits(logits=d_logits_fake1,
-                                                      labels=tf.zeros_like(d_logits_fake1))
+    d_loss1 = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=d_logits_fake1,
+                                                      labels=tf.zeros_like(d_logits_fake1)))
 
-    d_loss2 = tf.nn.sigmoid_cross_entropy_with_logits(logits=d_logits_fake2,
-                                                      labels=tf.zeros_like(d_logits_fake2))
+    d_loss2 = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=d_logits_fake2,
+                                                      labels=tf.zeros_like(d_logits_fake2)))
 
-    d_loss3 = tf.nn.sigmoid_cross_entropy_with_logits(logits=d_logits_real,
-                                                      labels=tf.ones_like(d_logits_real))
+    d_loss3 = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=d_logits_real,
+                                                      labels=tf.ones_like(d_logits_real)))
 
     d_loss = d_loss1 + d_loss2 + d_loss3
 
     "code discriminator loss"
 
-    cd_loss1 = tf.nn.sigmoid_cross_entropy_with_logits(logits=cd_logits_fake,
-                                                       labels=tf.zeros_like(cd_logits_fake))
+    cd_loss1 = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=cd_logits_fake,
+                                                       labels=tf.zeros_like(cd_logits_fake)))
 
-    cd_loss2 = tf.nn.sigmoid_cross_entropy_with_logits(logits=cd_logits_real,
-                                                       labels=tf.ones_like(cd_logits_real))
+    cd_loss2 = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=cd_logits_real,
+                                                       labels=tf.ones_like(cd_logits_real)))
 
     cd_loss = cd_loss1 + cd_loss2
 
