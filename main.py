@@ -147,7 +147,7 @@ def train():
                                  name=checkpoints_dir+"/d_{}.npz".format(tl.global_flag['mode']),
                                  network=net_d)
 
-    img_batch = inputs(filename, batch_size, n_epoch, shuffle_size=500, is_augment=False)
+    img_batch = inputs(filename, batch_size, n_epoch, shuffle_size=500, is_augment=False, is_resize=True)
 
 
     num_of_data = 4000
@@ -173,7 +173,7 @@ def train():
 
             batch_sz = imgs.shape[0]
             "sample a standard normal distribution"
-            z_prior = tf.truncated_normal((batch_sz, hidden_dim), mean=0.0, stddev=1.0)
+            z_prior = np.random.normal(0, 1.0, (batch_sz, hidden_dim))
             "update encoder and generator multiple times"
             for i in range(1):
                 "update encoder"
