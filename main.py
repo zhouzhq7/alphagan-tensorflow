@@ -118,11 +118,13 @@ def train():
     cd_optim = tf.train.AdamOptimizer(lr_v, beta1=beta1).minimize(cd_loss, var_list=cd_vars)
 
 
+    save_ginit_dir = "./samples/{}_ginit".format(tl.global_flag['mode'])
     save_gan_dir = "./samples/{}_gan".format(tl.global_flag['mode'])
     checkpoints_dir = "./checkpoints"
     pre_trained_model_dir = "./models"
 
     mkdir_if_not_exists(save_gan_dir)
+    mkdir_if_not_exists(save_ginit_dir)
     mkdir_if_not_exists(checkpoints_dir)
     mkdir_if_not_exists(pre_trained_model_dir)
 
@@ -182,6 +184,15 @@ def train():
                                   name=checkpoints_dir + '/g_{}_init.npz'.format(tl.global_flag['mode']), sess=sess)
                 tl.files.save_npz(net_e.all_params,
                                   name=checkpoints_dir + '/e_{}_init.npz'.format(tl.global_flag['mode']), sess=sess)
+
+            # quick evaluation on train set
+            if ( (n_iter + 1) % (num_of_iter_one_epoch * save_every_epoch) == 0):
+                out = sess.run(net_g_test.outputs,
+                               {t_image: test_images})
+                out = (out+1)*127.5
+                print ("gen sub image:", out.shape, out.min(), out.max())
+                print("[*] save images")
+                tl.vis.save_images(out.astype(np.uint8), [4, 4], save_ginit_dir + '/train_%d.png' % ((n_iter + 1) // num_of_iter_one_epoch))
 
             for i in range(1):
                 "update encoder"
