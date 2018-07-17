@@ -147,11 +147,67 @@ def train():
                                  name=checkpoints_dir+"/d_{}.npz".format(tl.global_flag['mode']),
                                  network=net_d)
 
-    img_batch = inputs(filename, batch_size, n_epoch, shuffle_size=500, is_augment=False, is_resize=True)
+    img_batch = inputs(filename, batch_size, n_epoch_init, shuffle_size=500, is_augment=False, is_resize=True)
 
 
     num_of_data = 4000
     num_of_iter_one_epoch = num_of_data // batch_size
+
+    sess.run(tf.assign(lr_v, lr_init))
+    print ("Traing alpha-GAN with initialized learning rate: %f" % (lr_init))
+
+    try:
+        epoch_time = time.time()
+        n_iter = 0
+        while True:
+            if (n_iter + 1) % (num_of_iter_one_epoch) == 0:
+                log = "[*] Epoch [%4d/%4d] time: %4.4fs" % (
+                    (n_iter+1)//num_of_iter_one_epoch, n_epoch, time.time()-epoch_time
+                )
+                print (log)
+                epoch_time = time.time()
+
+            step_time = time.time()
+
+            imgs = np.array(sess.run(img_batch))
+
+            batch_sz = imgs.shape[0]
+            "sample a standard normal distribution"
+            z_prior = np.random.normal(0, 1.0, (batch_sz, hidden_dim))
+            "update encoder and generator multiple times"
+
+
+            if ((n_iter+1) % (save_every_epoch * num_of_iter_one_epoch) == 0):
+                tl.files.save_npz(net_g.all_params,
+                                  name=checkpoints_dir + '/g_{}_init.npz'.format(tl.global_flag['mode']), sess=sess)
+                tl.files.save_npz(net_e.all_params,
+                                  name=checkpoints_dir + '/e_{}_init.npz'.format(tl.global_flag['mode']), sess=sess)
+
+            for i in range(1):
+                "update encoder"
+                err_E_recons_loss, err_E_adversarial_loss, err_E_loss, _ = sess.run(
+                    [reconstruction_loss, e_loss1, e_loss, e_optim], feed_dict={t_image: imgs, t_z: z_prior})
+
+                log = "Epoch [%4d/%4d] %6d time: %4.4fs, e_loss: %8f, e_recons_loss: %8f, e_adverse_loss: %8f" % (
+                    (n_iter+1)//num_of_iter_one_epoch, n_epoch_init, n_iter, time.time() - step_time, err_E_loss, err_E_recons_loss,
+                    err_E_adversarial_loss
+                )
+
+                print (log)
+
+                "update generator"
+                err_G_recons_loss, err_G_adverse_loss, err_G_gen_loss, err_G_loss, _ = sess.run(
+                    [reconstruction_loss, g_loss1, g_loss2, g_loss, g_optim], feed_dict={t_image:imgs, t_z: z_prior}
+                )
+
+                log = "Epoch [%4d/%4d] %6d time: %4.4fs, g_loss: %8f, g_recons_loss: %8f, g_adverse_loss: %8f, g_gen_loss: %8f" % (
+                    (n_iter+1)//num_of_iter_one_epoch, n_epoch_init,n_iter, time.time() - step_time, err_G_loss, err_G_recons_loss,
+                    err_G_adverse_loss, err_G_gen_loss
+                )
+                print (log)
+            n_iter += 1
+    except tf.errors.OutOfRangeError:
+        print ("Done initializing generator and encoder!")
 
     sess.run(tf.assign(lr_v, lr_init))
     print ("Traing alpha-GAN with initialized learning rate: %f" % (lr_init))
@@ -221,6 +277,16 @@ def train():
             )
 
             print (log)
+
+            if ((n_iter+1) % (save_every_epoch * num_of_iter_one_epoch) == 0):
+                tl.files.save_npz(net_g.all_params,
+                                  name=checkpoints_dir + '/g_{}.npz'.format(tl.global_flag['mode']), sess=sess)
+                tl.files.save_npz(net_e.all_params,
+                                  name=checkpoints_dir + '/e_{}.npz'.format(tl.global_flag['mode']), sess=sess)
+                tl.files.save_npz(net_d.all_params,
+                                  name=checkpoints_dir + '/d_{}.npz'.format(tl.global_flag['mode']), sess=sess)
+                tl.files.save_npz(net_cd.all_params,
+                                  name=checkpoints_dir + '/cd_{}.npz'.format(tl.global_flag['mode']), sess=sess)
 
             # quick evaluation on train set
             if ( (n_iter + 1) % (num_of_iter_one_epoch * save_every_epoch) == 0):
