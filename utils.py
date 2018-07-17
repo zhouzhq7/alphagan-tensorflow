@@ -134,8 +134,11 @@ def augment(img):
 
     return img
 
+def resize(img):
+    img = tf.image.resize_images(img, [64, 64])
+    return img
 
-def inputs(filename, batch_size, num_epochs, shuffle_size, is_augment):
+def inputs(filename, batch_size, num_epochs, shuffle_size, is_augment, is_resize):
     with tf.name_scope('input'):
         dataset = tf.data.TFRecordDataset(filename)
 
@@ -143,6 +146,9 @@ def inputs(filename, batch_size, num_epochs, shuffle_size, is_augment):
 
         if is_augment:
             dataset = dataset.map(augment)
+
+        if is_resize:
+            dataset = dataset.map(resize)
 
         dataset = dataset.shuffle(buffer_size=shuffle_size)
 
