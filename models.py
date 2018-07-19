@@ -121,10 +121,9 @@ def generator(feat_vec, is_train=True, reuse=False):
         net_h4 = DeConv2d(net_h3, n_filter=c_dim, filter_size=filter_size, out_size=(image_size, image_size), strides=strides,
                           padding='SAME', batch_size=batch_size, W_init=w_init, name='g/h4/deconv2d')
 
-        logits = net_h4.outputs
         net_h4.outputs = tf.nn.tanh(net_h4.outputs)
 
-        return net_h4, logits
+        return net_h4, net_h4.outputs
 
 def discriminator(inputs, is_train=True, reuse=False):
 

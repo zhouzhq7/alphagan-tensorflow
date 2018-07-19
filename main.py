@@ -40,7 +40,7 @@ def train():
 
     t_image = tf.placeholder(tf.float32, [None, 64, 64, 3], name='real_image')
 
-    net_e, z_hat = encoder(t_image, is_train=True, reuse=False)
+    net_e, z_hat = encoder((t_image/127.5)-1, is_train=True, reuse=False)
 
     t_z = tf.placeholder(tf.float32, [None, hidden_dim], name='z_prior')
 
@@ -56,10 +56,10 @@ def train():
 
     _, d_logits_fake2 = discriminator(x_gen, is_train=True, reuse=True)
 
-    _, d_logits_real = discriminator(t_image, is_train=True, reuse=True)
+    _, d_logits_real = discriminator((t_image/127.5)-1, is_train=True, reuse=True)
 
     "define test network"
-    net_e_test, z_test = encoder(t_image, is_train=False, reuse=True)
+    net_e_test, z_test = encoder((t_image/127.5)-1, is_train=False, reuse=True)
     net_g_test, _ = generator(z_test, is_train=False, reuse=True)
 
     "auto encoder loss"
