@@ -64,7 +64,7 @@ def train():
 
     "auto encoder loss"
     reconstruction_loss = tf.reduce_mean(tf.losses.absolute_difference(
-        x_recons, t_image
+        x_recons, (t_image/127.5)-1
     ))
 
     e_loss1 = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=cd_logits_fake,
