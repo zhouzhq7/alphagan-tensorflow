@@ -223,6 +223,7 @@ def train():
     sess.run(tf.assign(lr_v, lr_init))
     print ("Traing alpha-GAN with initialized learning rate: %f" % (lr_init))
 
+    img_batch = inputs(filename, batch_size, n_epoch_init, shuffle_size=500, is_augment=False, is_resize=True)
     try:
         epoch_time = time.time()
         n_iter = 0
