@@ -342,6 +342,7 @@ def train():
                 print("[*] save images")
                 tl.vis.save_images(out.astype(np.uint8), [4, 4], save_gan_dir + '/train_%d.png' % ((n_iter + 1) // num_of_iter_one_epoch))
 
+            n_iter += 1
 
     except tf.errors.OutOfRangeError:
         print ("training is done")
