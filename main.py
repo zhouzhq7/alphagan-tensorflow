@@ -182,7 +182,7 @@ def train():
                                  name=checkpoints_dir+"/d_{}.npz".format(tl.global_flag['mode']),
                                  network=net_d)
 
-    img_batch = inputs(filename, batch_size, n_epoch_init, shuffle_size=500, is_augment=False, is_resize=True)
+    img_batch = inputs(filename, batch_size, n_epoch_init, shuffle_size=4000, is_augment=False, is_resize=True)
 
 
     num_of_data = 4000
@@ -256,7 +256,7 @@ def train():
     sess.run(tf.assign(lr_v, lr_init))
     print ("Traing alpha-GAN with initialized learning rate: %f" % (lr_init))
 
-    img_batch = inputs(filename, batch_size, n_epoch_init, shuffle_size=4000, is_augment=False, is_resize=True)
+    img_batch = inputs(filename, batch_size, n_epoch, shuffle_size=4000, is_augment=False, is_resize=True)
     try:
         epoch_time = time.time()
         n_iter = 0
