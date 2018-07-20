@@ -5,36 +5,63 @@ from tensorlayer.layers import *
 def encoder(rgb, is_train=True, reuse=False):
     h_dim = 512
 
-    num_of_resblock = 8
+    num_of_resblock = 4
 
     w_init = tf.truncated_normal_initializer(mean=0.0, stddev=0.02)
     b_init = None
     g_init = tf.truncated_normal_initializer(mean=1.0, stddev=0.02)
 
+    gf_dim = 32
 
     filter_size = (3, 3)
     strides = (1, 1)
+
+    down_filter_size = (5, 5)
+    down_strides = (2, 2)
 
     with tf.variable_scope('encoder', reuse=reuse):
 
         tl.layers.set_name_reuse(reuse)
 
+        # (64, 64 3)
         net = InputLayer(rgb, name='e/in')
 
-        net = Conv2d(net, n_filter=64, filter_size=filter_size, strides=strides, act=tf.nn.relu,
-                     padding='SAME', W_init=w_init, name='e/n64s1/c0')
+        # (32, 32, 32)
+        net = Conv2d(net, n_filter=gf_dim, filter_size=down_filter_size, strides=down_strides,
+                     act=tf.nn.relu, padding='SAME', W_init=w_init, name='e/n32s2/c0')
+
+        # (16, 16, 64)
+        net = Conv2d(net, n_filter=gf_dim * 2, filter_size=down_filter_size, strides=down_strides,
+                     act=tf.nn.relu, padding='SAME', W_init=w_init, name='e/n64s2/c0')
+
+        net = BatchNormLayer(net, act=tf.nn.relu, is_train=is_train, gamma_init=g_init,
+                             name='e/n64s2/b0')
+
+        # (8, 8, 128)
+        net = Conv2d(net, n_filter=gf_dim*4, filter_size=down_filter_size, strides=down_strides,
+                     act=tf.nn.relu, padding='SAME', W_init=w_init, name='e/n128s2/c0')
+
+        net = BatchNormLayer(net, act=tf.nn.relu, is_train=is_train, gamma_init=g_init,
+                             name='e/n128s2/b0')
+
+        # (4, 4, 256)
+        net = Conv2d(net, n_filter=gf_dim*8, filter_size=down_filter_size, strides=down_strides,
+                     act=tf.nn.relu, padding='SAME', W_init=w_init, name='e/n256s2/c0')
+
+        net = BatchNormLayer(net, act=tf.nn.relu, is_train=is_train, gamma_init=g_init,
+                             name='e/n256s2/b0')
 
         temp = net
 
         ################################# Residual block ############################################
         for i in range(num_of_resblock):
-            net_r = Conv2d(net, n_filter=64, filter_size=filter_size, strides=strides, act=tf.identity,
-                           padding='SAME', W_init=w_init, b_init=b_init, name='e/n64s1/c1/%s' % i)
+            net_r = Conv2d(net, n_filter=gf_dim*8, filter_size=filter_size, strides=strides, act=tf.identity,
+                           padding='SAME', W_init=w_init, b_init=b_init, name='e/n256s1/c1/%s' % i)
 
             net_r = BatchNormLayer(net_r, act=tf.nn.relu, is_train=is_train, gamma_init=g_init, name='e/n64s1/b1/%s' % i)
 
-            net_r = Conv2d(net_r, n_filter=64, filter_size=filter_size, strides=strides, act=tf.identity,
-                           padding='SAME', W_init=w_init, b_init=b_init, name='e/n64s1/c2/%s' % i)
+            net_r = Conv2d(net_r, n_filter=gf_dim*8, filter_size=filter_size, strides=strides, act=tf.identity,
+                           padding='SAME', W_init=w_init, b_init=b_init, name='e/n256s1/c2/%s' % i)
 
             net_r = BatchNormLayer(net_r, act=tf.nn.relu, is_train=is_train, gamma_init=g_init, name='e/n64s1/b2/%s' % i)
 
@@ -42,10 +69,10 @@ def encoder(rgb, is_train=True, reuse=False):
 
             net = net_r
 
-        net = Conv2d(net, n_filter=64, filter_size=filter_size, strides=strides, act=tf.identity,
-                     W_init=w_init, b_init=b_init, name='e/n64s1/c/m')
+        net = Conv2d(net, n_filter=gf_dim*8, filter_size=filter_size, strides=strides, act=tf.identity,
+                     W_init=w_init, b_init=b_init, name='e/n256s1/c/m')
 
-        net = BatchNormLayer(net, is_train=is_train, gamma_init=g_init, name='e/n64s1/b/m')
+        net = BatchNormLayer(net, is_train=is_train, gamma_init=g_init, name='e/n256s1/b/m')
 
         net = ElementwiseLayer([net, temp], combine_fn=tf.add, name='e/add3')
 

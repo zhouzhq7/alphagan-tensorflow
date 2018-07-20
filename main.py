@@ -22,6 +22,9 @@ beta1 = config.beta1
 "initialize g"
 n_epoch_init = config.n_epoch_init
 
+"loss"
+loss_type = config.loss_type
+
 "adversarial learning (GAN)"
 n_epoch = config.n_epoch
 lr_decay = config.lr_decay
@@ -67,40 +70,70 @@ def train():
         x_recons, (t_image/127.5)-1
     ))
 
-    e_loss1 = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=cd_logits_fake,
-                                                                      labels=tf.ones_like(cd_logits_fake)))
+    if loss_type == 'lse':
+        e_loss1 = tf.reduce_mean(tf.squared_difference(cd_logits_fake,
+                                                       tf.ones_like(cd_logits_fake)))
+    else:
+        e_loss1 = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(
+            logits=cd_logits_fake, labels=tf.ones_like(cd_logits_fake)))
+
     e_loss = e_loss1 + reconstruction_loss
 
     "generator loss"
-
-    g_loss1 = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=d_logits_fake1,
-                                                             labels=tf.ones_like(d_logits_fake1)))
-
-    g_loss2 = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=d_logits_fake2,
-                                                             labels=tf.ones_like(d_logits_fake2)))
+    if loss_type == 'lse':
+        g_loss1 = tf.reduce_mean(tf.squared_difference(d_logits_fake1,
+                                                       tf.ones_like(d_logits_fake1)))
+    else:
+        g_loss1 = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=d_logits_fake1,
+                                                                 labels=tf.ones_like(d_logits_fake1)))
+    if loss_type == 'lse':
+        g_loss2 = tf.reduce_mean(tf.squared_difference(d_logits_fake2,
+                                                       tf.ones_like(d_logits_fake2)))
+    else:
+        g_loss2 = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=d_logits_fake2,
+                                                                 labels=tf.ones_like(d_logits_fake2)))
 
     g_loss = reconstruction_loss + g_loss1 + g_loss2
 
     "discriminator loss"
+    if loss_type == 'lse':
+        d_loss1 = tf.reduce_mean(tf.squared_difference(d_logits_fake1,
+                                                       tf.zeros_like(d_logits_fake1)))
+    else:
+        d_loss1 = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=d_logits_fake1,
+                                                          labels=tf.zeros_like(d_logits_fake1)))
 
-    d_loss1 = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=d_logits_fake1,
-                                                      labels=tf.zeros_like(d_logits_fake1)))
+    if loss_type == 'lse':
+        d_loss2 = tf.reduce_mean(tf.squared_difference(d_logits_fake2,
+                                                       tf.zeros_like(d_logits_fake2)))
+    else:
+        d_loss2 = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=d_logits_fake2,
+                                                          labels=tf.zeros_like(d_logits_fake2)))
 
-    d_loss2 = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=d_logits_fake2,
-                                                      labels=tf.zeros_like(d_logits_fake2)))
-
-    d_loss3 = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=d_logits_real,
-                                                      labels=tf.ones_like(d_logits_real)))
+    if loss_type == 'lse':
+        d_loss3 = tf.reduce_mean(tf.squared_difference(d_logits_real,
+                                                       tf.ones_like(d_logits_real)))
+    else:
+        d_loss3 = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=d_logits_real,
+                                                          labels=tf.ones_like(d_logits_real)))
 
     d_loss = d_loss1 + d_loss2 + d_loss3
 
     "code discriminator loss"
 
-    cd_loss1 = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=cd_logits_fake,
-                                                       labels=tf.zeros_like(cd_logits_fake)))
+    if loss_type == 'lse':
+        cd_loss1 = tf.reduce_mean(tf.squared_difference(cd_logits_fake,
+                                                        tf.zeros_like(cd_logits_fake)))
+    else:
+        cd_loss1 = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=cd_logits_fake,
+                                                           labels=tf.zeros_like(cd_logits_fake)))
 
-    cd_loss2 = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=cd_logits_real,
-                                                       labels=tf.ones_like(cd_logits_real)))
+    if loss_type == 'lse':
+        cd_loss2 = tf.reduce_mean(tf.squared_difference(cd_logits_real,
+                                                        tf.ones_like(cd_logits_real)))
+    else:
+        cd_loss2 = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=cd_logits_real,
+                                                           labels=tf.ones_like(cd_logits_real)))
 
     cd_loss = cd_loss1 + cd_loss2
 
@@ -223,7 +256,7 @@ def train():
     sess.run(tf.assign(lr_v, lr_init))
     print ("Traing alpha-GAN with initialized learning rate: %f" % (lr_init))
 
-    img_batch = inputs(filename, batch_size, n_epoch_init, shuffle_size=500, is_augment=False, is_resize=True)
+    img_batch = inputs(filename, batch_size, n_epoch_init, shuffle_size=4000, is_augment=False, is_resize=True)
     try:
         epoch_time = time.time()
         n_iter = 0
