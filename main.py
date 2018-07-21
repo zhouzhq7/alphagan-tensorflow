@@ -33,7 +33,10 @@ decay_every = config.decay_every
 "tfrecord data file"
 filename = config.data_tfrecord_dir
 
-save_every_epoch = 1
+
+num_of_update_for_e_g = 2
+
+save_every_epoch = 10
 
 def train():
 
@@ -275,8 +278,9 @@ def train():
             batch_sz = imgs.shape[0]
             "sample a standard normal distribution"
             z_prior = np.random.normal(0, 1.0, (batch_sz, hidden_dim))
+
             "update encoder and generator multiple times"
-            for i in range(1):
+            for i in range(num_of_update_for_e_g):
                 "update encoder"
                 err_E_recons_loss, err_E_adversarial_loss, err_E_loss, _ = sess.run(
                     [reconstruction_loss, e_loss1, e_loss, e_optim], feed_dict={t_image: imgs, t_z: z_prior})

@@ -17,8 +17,8 @@ config.beta1 = 0.9
 config.loss_type = 'lse'
 
 "g initialization"
-config.n_epoch_init = 101
+config.n_epoch_init = 0
 
-config.n_epoch = 100
+config.n_epoch = 1000
 config.lr_decay = 0.1
 config.decay_every = int(config.n_epoch/2)
