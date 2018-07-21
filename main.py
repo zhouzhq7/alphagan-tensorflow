@@ -175,7 +175,7 @@ def train():
         s_cd_overall_loss = tf.summary.scalar('overall_loss', cd_loss)
 
         cd_merge = tf.summary.merge([s_cd_adverse_loss_fake, s_cd_adverse_loss_real, s_cd_overall_loss])
-        cd_summary_writer = tf.summary.FileWriter(summary_dir+'code_discriminator')
+        cd_summary_writer = tf.summary.FileWriter(summary_dir+'/code_discriminator')
 
     e_vars = tl.layers.get_variables_with_name(name='encoder', train_only=True, printable=True)
     g_vars = tl.layers.get_variables_with_name(name='generator', train_only=True, printable=True)
