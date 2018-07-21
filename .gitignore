@@ -1,4 +1,6 @@
 train/
 .idea/
 __pycache__/
-
+checkpoints/
+models/
+samples/

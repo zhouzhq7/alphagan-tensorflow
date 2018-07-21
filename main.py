@@ -86,10 +86,10 @@ def train():
         e_loss = e_loss1 + reconstruction_loss
 
         "define summaries"
-        tf.summary.scalar('reconstruction_loss', reconstruction_loss)
-        tf.summary.scalar('adverse_loss', e_loss1)
-        tf.summary.scalar('overall_loss', e_loss)
-        e_merge = tf.summary.merge([reconstruction_loss, e_loss1, e_loss])
+        s_e_recons_loss = tf.summary.scalar('reconstruction_loss', reconstruction_loss)
+        s_e_adverse_loss = tf.summary.scalar('adverse_loss', e_loss1)
+        s_e_overall_loss = tf.summary.scalar('overall_loss', e_loss)
+        e_merge = tf.summary.merge([s_e_recons_loss, s_e_adverse_loss, s_e_overall_loss])
         e_summary_writer = tf.summary.FileWriter(summary_dir+'/encoder')
 
     with tf.name_scope('s_generator'):
@@ -110,12 +110,12 @@ def train():
         g_loss = reconstruction_loss + g_loss1 + g_loss2
 
         "define summaries"
-        tf.summary.scalar('adverse_recons_loss', g_loss1)
-        tf.summary.scalar('adverse_gen_loss', g_loss2)
-        tf.summary.scalar('reconstruction_loss', reconstruction_loss)
-        tf.summary.scalar('overall_loss', g_loss)
+        s_g_adverse_recons_loss = tf.summary.scalar('adverse_recons_loss', g_loss1)
+        s_g_adverse_gen_loss = tf.summary.scalar('adverse_gen_loss', g_loss2)
+        s_g_reconstruction_loss = tf.summary.scalar('reconstruction_loss', reconstruction_loss)
+        s_g_overall_loss = tf.summary.scalar('overall_loss', g_loss)
 
-        g_merge = tf.summary.merge([g_loss1, g_loss2, reconstruction_loss, g_loss])
+        g_merge = tf.summary.merge([s_g_adverse_gen_loss, s_g_adverse_recons_loss, s_g_reconstruction_loss, s_g_overall_loss])
         g_summary_writer = tf.summary.FileWriter(summary_dir+'/generator')
 
 
@@ -145,12 +145,12 @@ def train():
         d_loss = d_loss1 + d_loss2 + d_loss3
 
         "define summaries"
-        tf.summary.scalar('adverse_recons_loss', d_loss1)
-        tf.summary.scalar('adverse_gen_loss', d_loss2)
-        tf.summary.scalar('adverse_real_loss', d_loss3)
-        tf.summary.scalar('overall_loss', d_loss)
+        s_d_adverse_recons_loss = tf.summary.scalar('adverse_recons_loss', d_loss1)
+        s_d_adverse_gen_loss = tf.summary.scalar('adverse_gen_loss', d_loss2)
+        s_d_real_loss = tf.summary.scalar('adverse_real_loss', d_loss3)
+        s_d_overall_loss = tf.summary.scalar('overall_loss', d_loss)
 
-        d_merge = tf.summary.merge([d_loss1, d_loss2, d_loss3, d_loss])
+        d_merge = tf.summary.merge([s_d_adverse_gen_loss, s_d_adverse_recons_loss, s_d_real_loss, s_d_overall_loss])
         d_summary_writer = tf.summary.FileWriter(summary_dir+'/discriminator')
 
     with tf.name_scope("s_code_discriminator"):
@@ -170,11 +170,11 @@ def train():
                                                                labels=tf.ones_like(cd_logits_real)))
         cd_loss = cd_loss1 + cd_loss2
 
-        tf.summary.scalar('adverse_loss_fake', cd_loss1)
-        tf.summary.scalar('adverse_loss_real', cd_loss2)
-        tf.summary.scalar('overall_loss', cd_loss)
+        s_cd_adverse_loss_fake = tf.summary.scalar('adverse_loss_fake', cd_loss1)
+        s_cd_adverse_loss_real = tf.summary.scalar('adverse_loss_real', cd_loss2)
+        s_cd_overall_loss = tf.summary.scalar('overall_loss', cd_loss)
 
-        cd_merge = tf.summary.merge([cd_loss1, cd_loss2, cd_loss])
+        cd_merge = tf.summary.merge([s_cd_adverse_loss_fake, s_cd_adverse_loss_real, s_cd_overall_loss])
         cd_summary_writer = tf.summary.FileWriter(summary_dir+'code_discriminator')
 
     e_vars = tl.layers.get_variables_with_name(name='encoder', train_only=True, printable=True)
