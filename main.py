@@ -33,6 +33,8 @@ decay_every = config.decay_every
 "tfrecord data file"
 filename = config.data_tfrecord_dir
 
+"summaries"
+summary_dir = config.summary_dir
 
 num_of_update_for_e_g = 2
 
@@ -73,72 +75,107 @@ def train():
         x_recons, (t_image/127.5)-1
     ))
 
-    if loss_type == 'lse':
-        e_loss1 = tf.reduce_mean(tf.squared_difference(cd_logits_fake,
-                                                       tf.ones_like(cd_logits_fake)))
-    else:
-        e_loss1 = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(
-            logits=cd_logits_fake, labels=tf.ones_like(cd_logits_fake)))
+    with tf.name_scope('s_encoder'):
+        if loss_type == 'lse':
+            e_loss1 = tf.reduce_mean(tf.squared_difference(cd_logits_fake,
+                                                           tf.ones_like(cd_logits_fake)))
+        else:
+            e_loss1 = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(
+                logits=cd_logits_fake, labels=tf.ones_like(cd_logits_fake)))
 
-    e_loss = e_loss1 + reconstruction_loss
+        e_loss = e_loss1 + reconstruction_loss
 
-    "generator loss"
-    if loss_type == 'lse':
-        g_loss1 = tf.reduce_mean(tf.squared_difference(d_logits_fake1,
-                                                       tf.ones_like(d_logits_fake1)))
-    else:
-        g_loss1 = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=d_logits_fake1,
-                                                                 labels=tf.ones_like(d_logits_fake1)))
-    if loss_type == 'lse':
-        g_loss2 = tf.reduce_mean(tf.squared_difference(d_logits_fake2,
-                                                       tf.ones_like(d_logits_fake2)))
-    else:
-        g_loss2 = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=d_logits_fake2,
-                                                                 labels=tf.ones_like(d_logits_fake2)))
+        "define summaries"
+        tf.summary.scalar('reconstruction_loss', reconstruction_loss)
+        tf.summary.scalar('adverse_loss', e_loss1)
+        tf.summary.scalar('overall_loss', e_loss)
+        e_merge = tf.summary.merge([reconstruction_loss, e_loss1, e_loss])
+        e_summary_writer = tf.summary.FileWriter(summary_dir+'/encoder')
 
-    g_loss = reconstruction_loss + g_loss1 + g_loss2
+    with tf.name_scope('s_generator'):
+        "generator loss"
+        if loss_type == 'lse':
+            g_loss1 = tf.reduce_mean(tf.squared_difference(d_logits_fake1,
+                                                           tf.ones_like(d_logits_fake1)))
+        else:
+            g_loss1 = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=d_logits_fake1,
+                                                                     labels=tf.ones_like(d_logits_fake1)))
+        if loss_type == 'lse':
+            g_loss2 = tf.reduce_mean(tf.squared_difference(d_logits_fake2,
+                                                           tf.ones_like(d_logits_fake2)))
+        else:
+            g_loss2 = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=d_logits_fake2,
+                                                                     labels=tf.ones_like(d_logits_fake2)))
 
-    "discriminator loss"
-    if loss_type == 'lse':
-        d_loss1 = tf.reduce_mean(tf.squared_difference(d_logits_fake1,
-                                                       tf.zeros_like(d_logits_fake1)))
-    else:
-        d_loss1 = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=d_logits_fake1,
-                                                          labels=tf.zeros_like(d_logits_fake1)))
+        g_loss = reconstruction_loss + g_loss1 + g_loss2
 
-    if loss_type == 'lse':
-        d_loss2 = tf.reduce_mean(tf.squared_difference(d_logits_fake2,
-                                                       tf.zeros_like(d_logits_fake2)))
-    else:
-        d_loss2 = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=d_logits_fake2,
-                                                          labels=tf.zeros_like(d_logits_fake2)))
+        "define summaries"
+        tf.summary.scalar('adverse_recons_loss', g_loss1)
+        tf.summary.scalar('adverse_gen_loss', g_loss2)
+        tf.summary.scalar('reconstruction_loss', reconstruction_loss)
+        tf.summary.scalar('overall_loss', g_loss)
 
-    if loss_type == 'lse':
-        d_loss3 = tf.reduce_mean(tf.squared_difference(d_logits_real,
-                                                       tf.ones_like(d_logits_real)))
-    else:
-        d_loss3 = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=d_logits_real,
-                                                          labels=tf.ones_like(d_logits_real)))
+        g_merge = tf.summary.merge([g_loss1, g_loss2, reconstruction_loss, g_loss])
+        g_summary_writer = tf.summary.FileWriter(summary_dir+'/generator')
 
-    d_loss = d_loss1 + d_loss2 + d_loss3
 
-    "code discriminator loss"
+    with tf.name_scope('s_discriminator'):
+        "discriminator loss"
+        if loss_type == 'lse':
+            d_loss1 = tf.reduce_mean(tf.squared_difference(d_logits_fake1,
+                                                           tf.zeros_like(d_logits_fake1)))
+        else:
+            d_loss1 = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=d_logits_fake1,
+                                                              labels=tf.zeros_like(d_logits_fake1)))
 
-    if loss_type == 'lse':
-        cd_loss1 = tf.reduce_mean(tf.squared_difference(cd_logits_fake,
-                                                        tf.zeros_like(cd_logits_fake)))
-    else:
-        cd_loss1 = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=cd_logits_fake,
-                                                           labels=tf.zeros_like(cd_logits_fake)))
+        if loss_type == 'lse':
+            d_loss2 = tf.reduce_mean(tf.squared_difference(d_logits_fake2,
+                                                           tf.zeros_like(d_logits_fake2)))
+        else:
+            d_loss2 = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=d_logits_fake2,
+                                                              labels=tf.zeros_like(d_logits_fake2)))
 
-    if loss_type == 'lse':
-        cd_loss2 = tf.reduce_mean(tf.squared_difference(cd_logits_real,
-                                                        tf.ones_like(cd_logits_real)))
-    else:
-        cd_loss2 = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=cd_logits_real,
-                                                           labels=tf.ones_like(cd_logits_real)))
+        if loss_type == 'lse':
+            d_loss3 = tf.reduce_mean(tf.squared_difference(d_logits_real,
+                                                           tf.ones_like(d_logits_real)))
+        else:
+            d_loss3 = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=d_logits_real,
+                                                              labels=tf.ones_like(d_logits_real)))
 
-    cd_loss = cd_loss1 + cd_loss2
+        d_loss = d_loss1 + d_loss2 + d_loss3
+
+        "define summaries"
+        tf.summary.scalar('adverse_recons_loss', d_loss1)
+        tf.summary.scalar('adverse_gen_loss', d_loss2)
+        tf.summary.scalar('adverse_real_loss', d_loss3)
+        tf.summary.scalar('overall_loss', d_loss)
+
+        d_merge = tf.summary.merge([d_loss1, d_loss2, d_loss3, d_loss])
+        d_summary_writer = tf.summary.FileWriter(summary_dir+'/discriminator')
+
+    with tf.name_scope("s_code_discriminator"):
+        "code discriminator loss"
+        if loss_type == 'lse':
+            cd_loss1 = tf.reduce_mean(tf.squared_difference(cd_logits_fake,
+                                                            tf.zeros_like(cd_logits_fake)))
+        else:
+            cd_loss1 = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=cd_logits_fake,
+                                                               labels=tf.zeros_like(cd_logits_fake)))
+
+        if loss_type == 'lse':
+            cd_loss2 = tf.reduce_mean(tf.squared_difference(cd_logits_real,
+                                                            tf.ones_like(cd_logits_real)))
+        else:
+            cd_loss2 = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=cd_logits_real,
+                                                               labels=tf.ones_like(cd_logits_real)))
+        cd_loss = cd_loss1 + cd_loss2
+
+        tf.summary.scalar('adverse_loss_fake', cd_loss1)
+        tf.summary.scalar('adverse_loss_real', cd_loss2)
+        tf.summary.scalar('overall_loss', cd_loss)
+
+        cd_merge = tf.summary.merge([cd_loss1, cd_loss2, cd_loss])
+        cd_summary_writer = tf.summary.FileWriter(summary_dir+'code_discriminator')
 
     e_vars = tl.layers.get_variables_with_name(name='encoder', train_only=True, printable=True)
     g_vars = tl.layers.get_variables_with_name(name='generator', train_only=True, printable=True)
@@ -282,8 +319,8 @@ def train():
             "update encoder and generator multiple times"
             for i in range(num_of_update_for_e_g):
                 "update encoder"
-                err_E_recons_loss, err_E_adversarial_loss, err_E_loss, _ = sess.run(
-                    [reconstruction_loss, e_loss1, e_loss, e_optim], feed_dict={t_image: imgs, t_z: z_prior})
+                e_summary, err_E_recons_loss, err_E_adversarial_loss, err_E_loss, _ = sess.run(
+                    [e_merge, reconstruction_loss, e_loss1, e_loss, e_optim], feed_dict={t_image: imgs, t_z: z_prior})
 
                 log = "Epoch [%4d/%4d] %6d time: %4.4fs, e_loss: %8f, e_recons_loss: %8f, e_adverse_loss: %8f" % (
                     (n_iter+1)//num_of_iter_one_epoch, n_epoch,n_iter, time.time() - step_time, err_E_loss, err_E_recons_loss,
@@ -292,9 +329,11 @@ def train():
 
                 print (log)
 
+                e_summary_writer.add_summary(e_summary, n_iter*num_of_iter_one_epoch + i)
+
                 "update generator"
-                err_G_recons_loss, err_G_adverse_loss, err_G_gen_loss, err_G_loss, _ = sess.run(
-                    [reconstruction_loss, g_loss1, g_loss2, g_loss, g_optim], feed_dict={t_image:imgs, t_z: z_prior}
+                g_summary, err_G_recons_loss, err_G_adverse_loss, err_G_gen_loss, err_G_loss, _ = sess.run(
+                    [g_merge, reconstruction_loss, g_loss1, g_loss2, g_loss, g_optim], feed_dict={t_image:imgs, t_z: z_prior}
                 )
 
                 log = "Epoch [%4d/%4d] %6d time: %4.4fs, g_loss: %8f, g_recons_loss: %8f, g_adverse_loss: %8f, g_gen_loss: %8f" % (
@@ -304,20 +343,25 @@ def train():
 
                 print (log)
 
+                g_summary_writer.add_summary(g_summary, n_iter*num_of_iter_one_epoch + i)
+
             "update discriminator"
-            err_D_real_loss, err_D_recons_loss, err_D_gen_loss, err_D_loss, _ = sess.run([d_loss3, d_loss1, d_loss2, d_loss, d_optim],
+            d_summary, err_D_real_loss, err_D_recons_loss, err_D_gen_loss, err_D_loss, _ = \
+                sess.run([d_merge, d_loss3, d_loss1, d_loss2, d_loss, d_optim],
                                                                              feed_dict={t_image:imgs, t_z: z_prior})
 
             log = "Epoch [%4d/%4d] %6d time: %4.4fs, d_loss: %8f, d_recons_loss: %8f, d_gen_loss: %8f, d_real_loss: %8f" % (
                 (n_iter+1)//num_of_iter_one_epoch, n_epoch,n_iter, time.time() - step_time, err_D_loss, err_D_recons_loss,
                 err_D_gen_loss, err_D_real_loss
             )
-
             print (log)
+
+            d_summary_writer.add_summary(d_summary, n_iter)
 
             "update code discriminator"
 
-            err_CD_fake_loss, err_CD_real_loss, err_CD_loss, _ = sess.run([cd_loss1, cd_loss2, cd_loss, cd_optim],
+            cd_summary, err_CD_fake_loss, err_CD_real_loss, err_CD_loss, _ = \
+                sess.run([cd_merge, cd_loss1, cd_loss2, cd_loss, cd_optim],
                                                                                          feed_dict={t_image:imgs, t_z: z_prior})
 
             log = "Epoch [%4d/%4d] %6d time: %4.4fs, cd_loss: %8f, cd_fake_loss: %8f, cd_real_loss: %8f" % (
@@ -326,6 +370,8 @@ def train():
             )
 
             print (log)
+
+            cd_summary_writer.add_summary(cd_summary, n_iter)
 
             if ((n_iter+1) % (save_every_epoch * num_of_iter_one_epoch) == 0):
                 tl.files.save_npz(net_g.all_params,
