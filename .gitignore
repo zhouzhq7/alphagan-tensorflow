@@ -4,3 +4,4 @@ __pycache__/
 checkpoints/
 models/
 samples/
+intermediate_results/
