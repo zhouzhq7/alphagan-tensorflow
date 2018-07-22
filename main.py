@@ -76,7 +76,7 @@ def train():
     "define another test network to evaluate the generative performance of generator"
     net_g_test1, _ = generator(t_z, is_train=False, reuse=True)
     np.random.seed(42)
-    sampled_z_test = np.random(0.0, 1.0, [16, hidden_dim])
+    sampled_z_test = np.random.normal(0.0, 1.0, [16, hidden_dim])
 
     "auto encoder loss"
     reconstruction_loss = recons_loss_w*tf.reduce_mean(tf.losses.absolute_difference(
