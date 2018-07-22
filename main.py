@@ -38,6 +38,8 @@ summary_dir = config.summary_dir
 
 num_of_update_for_e_g = 2
 
+recons_loss_w = 20.0
+
 save_every_epoch = 10
 
 def train():
@@ -83,10 +85,11 @@ def train():
             e_loss1 = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(
                 logits=cd_logits_fake, labels=tf.ones_like(cd_logits_fake)))
 
-        e_loss = e_loss1 + reconstruction_loss
+        e_loss = e_loss1 + recons_loss_w * reconstruction_loss
 
         "define summaries"
-        s_e_recons_loss = tf.summary.scalar('reconstruction_loss', reconstruction_loss)
+        s_e_recons_loss = tf.summary.scalar('reconstruction_loss',
+                                            recons_loss_w * reconstruction_loss)
         s_e_adverse_loss = tf.summary.scalar('adverse_loss', e_loss1)
         s_e_overall_loss = tf.summary.scalar('overall_loss', e_loss)
         e_merge = tf.summary.merge([s_e_recons_loss, s_e_adverse_loss, s_e_overall_loss])
@@ -107,12 +110,13 @@ def train():
             g_loss2 = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=d_logits_fake2,
                                                                      labels=tf.ones_like(d_logits_fake2)))
 
-        g_loss = reconstruction_loss + g_loss1 + g_loss2
+        g_loss = recons_loss_w*reconstruction_loss + g_loss1 + g_loss2
 
         "define summaries"
         s_g_adverse_recons_loss = tf.summary.scalar('adverse_recons_loss', g_loss1)
         s_g_adverse_gen_loss = tf.summary.scalar('adverse_gen_loss', g_loss2)
-        s_g_reconstruction_loss = tf.summary.scalar('reconstruction_loss', reconstruction_loss)
+        s_g_reconstruction_loss = tf.summary.scalar('reconstruction_loss',
+                                                    recons_loss_w*reconstruction_loss)
         s_g_overall_loss = tf.summary.scalar('overall_loss', g_loss)
 
         g_merge = tf.summary.merge([s_g_adverse_gen_loss, s_g_adverse_recons_loss, s_g_reconstruction_loss, s_g_overall_loss])
@@ -240,6 +244,10 @@ def train():
                     (n_iter+1)//num_of_iter_one_epoch, n_epoch, time.time()-epoch_time
                 )
                 print (log)
+                lr_new = lr_init * (lr_decay**((n_iter+1)//num_of_iter_one_epoch))
+                sess.run(tf.assign(lr_v, lr_new))
+                print ("Traing alpha-GAN with new learning rate: %f" % (lr_new))
+
                 epoch_time = time.time()
 
             step_time = time.time()

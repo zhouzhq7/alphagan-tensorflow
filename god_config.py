@@ -20,7 +20,7 @@ config.loss_type = 'lse'
 config.n_epoch_init = 0
 
 config.n_epoch = 1000
-config.lr_decay = 0.1
+config.lr_decay = 0.995
 config.decay_every = int(config.n_epoch/2)
 
 "summaries"
