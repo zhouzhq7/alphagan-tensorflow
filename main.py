@@ -44,11 +44,6 @@ save_every_epoch = 10
 
 hidden_dim = 512
 
-save_ginit_dir = "./samples/{}_ginit".format(tl.global_flag['mode'])
-save_gan_dir = "./samples/{}_gan".format(tl.global_flag['mode'])
-checkpoints_dir = "./checkpoints"
-pre_trained_model_dir = "./models"
-result_dir = './results'
 
 def train():
 
@@ -206,9 +201,12 @@ def train():
     cd_optim = tf.train.AdamOptimizer(lr_v, beta1=beta1).minimize(cd_loss, var_list=cd_vars)
 
 
+    save_gan_dir = "./samples/{}_gan".format(tl.global_flag['mode'])
+    checkpoints_dir = "./checkpoints"
+    pre_trained_model_dir = "./models"
+    result_dir = './results'
 
     mkdir_if_not_exists(save_gan_dir)
-    mkdir_if_not_exists(save_ginit_dir)
     mkdir_if_not_exists(checkpoints_dir)
     mkdir_if_not_exists(pre_trained_model_dir)
     mkdir_if_not_exists(result_dir)
@@ -357,6 +355,7 @@ def train():
 def evaluate(sub='generator', num=16):
     sess = tf.Session(config=tf.ConfigProto(allow_soft_placement=True, log_device_placement=False))
     result_dir = './results'
+    checkpoints_dir = "./checkpoints"
     mkdir_if_not_exists(result_dir)
     if sub == 'generator':
         with tf.name_scope('evaluation'):
