@@ -314,6 +314,9 @@ def train():
                     (n_iter+1)//num_of_iter_one_epoch, n_epoch, time.time()-epoch_time
                 )
                 print (log)
+                lr_new = lr_init * (lr_decay**((n_iter+1)//num_of_iter_one_epoch))
+                sess.run(tf.assign(lr_v, lr_new))
+                print ("Traing alpha-GAN with new learning rate: %f" % (lr_new))
                 epoch_time = time.time()
 
             step_time = time.time()
