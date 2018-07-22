@@ -38,15 +38,21 @@ summary_dir = config.summary_dir
 
 num_of_update_for_e_g = 2
 
-recons_loss_w = 20.0
+recons_loss_w = 10.0
 
 save_every_epoch = 10
+
+hidden_dim = 512
+
+save_ginit_dir = "./samples/{}_ginit".format(tl.global_flag['mode'])
+save_gan_dir = "./samples/{}_gan".format(tl.global_flag['mode'])
+checkpoints_dir = "./checkpoints"
+pre_trained_model_dir = "./models"
+result_dir = './results'
 
 def train():
 
     test_images = get_test_images()
-
-    hidden_dim = 512
 
     t_image = tf.placeholder(tf.float32, [None, 64, 64, 3], name='real_image')
 
@@ -71,6 +77,11 @@ def train():
     "define test network"
     net_e_test, z_test = encoder((t_image/127.5)-1, is_train=False, reuse=True)
     net_g_test, _ = generator(z_test, is_train=False, reuse=True)
+
+    "define another test network to evaluate the generative performance of generator"
+    net_g_test1, _ = generator(t_z, is_train=False, reuse=True)
+    np.random.seed(42)
+    sampled_z_test = np.random(0.0, 1.0, [16, hidden_dim])
 
     "auto encoder loss"
     reconstruction_loss = recons_loss_w*tf.reduce_mean(tf.losses.absolute_difference(
@@ -195,15 +206,12 @@ def train():
     cd_optim = tf.train.AdamOptimizer(lr_v, beta1=beta1).minimize(cd_loss, var_list=cd_vars)
 
 
-    save_ginit_dir = "./samples/{}_ginit".format(tl.global_flag['mode'])
-    save_gan_dir = "./samples/{}_gan".format(tl.global_flag['mode'])
-    checkpoints_dir = "./checkpoints"
-    pre_trained_model_dir = "./models"
 
     mkdir_if_not_exists(save_gan_dir)
     mkdir_if_not_exists(save_ginit_dir)
     mkdir_if_not_exists(checkpoints_dir)
     mkdir_if_not_exists(pre_trained_model_dir)
+    mkdir_if_not_exists(result_dir)
 
 
     sess = tf.Session(config=tf.ConfigProto(allow_soft_placement=True, log_device_placement=False))
@@ -226,8 +234,6 @@ def train():
                                  name=checkpoints_dir+"/d_{}.npz".format(tl.global_flag['mode']),
                                  network=net_d)
 
-    img_batch = inputs(filename, batch_size, n_epoch_init, shuffle_size=4000, is_augment=False, is_resize=True)
-
 
     num_of_data = 4000
     num_of_iter_one_epoch = num_of_data // batch_size
@@ -235,76 +241,8 @@ def train():
     sess.run(tf.assign(lr_v, lr_init))
     print ("Traing alpha-GAN with initialized learning rate: %f" % (lr_init))
 
-    try:
-        epoch_time = time.time()
-        n_iter = 0
-        while True:
-            if (n_iter + 1) % (num_of_iter_one_epoch) == 0:
-                log = "[*] Epoch [%4d/%4d] time: %4.4fs" % (
-                    (n_iter+1)//num_of_iter_one_epoch, n_epoch, time.time()-epoch_time
-                )
-                print (log)
-                lr_new = lr_init * (lr_decay**((n_iter+1)//num_of_iter_one_epoch))
-                sess.run(tf.assign(lr_v, lr_new))
-                print ("Traing alpha-GAN with new learning rate: %f" % (lr_new))
-
-                epoch_time = time.time()
-
-            step_time = time.time()
-
-            imgs = np.array(sess.run(img_batch))
-
-            batch_sz = imgs.shape[0]
-            "sample a standard normal distribution"
-            z_prior = np.random.normal(0, 1.0, (batch_sz, hidden_dim))
-            "update encoder and generator multiple times"
-
-
-            if ((n_iter+1) % (save_every_epoch * num_of_iter_one_epoch) == 0):
-                tl.files.save_npz(net_g.all_params,
-                                  name=checkpoints_dir + '/g_{}_init.npz'.format(tl.global_flag['mode']), sess=sess)
-                tl.files.save_npz(net_e.all_params,
-                                  name=checkpoints_dir + '/e_{}_init.npz'.format(tl.global_flag['mode']), sess=sess)
-
-            # quick evaluation on train set
-            if ( (n_iter + 1) % (num_of_iter_one_epoch * save_every_epoch) == 0):
-                out = sess.run(net_g_test.outputs,
-                               {t_image: test_images})
-                out = (out+1)*127.5
-                print ("gen sub image:", out.shape, out.min(), out.max())
-                print("[*] save images")
-                tl.vis.save_images(out.astype(np.uint8), [4, 4], save_ginit_dir + '/train_%d.png' % ((n_iter + 1) // num_of_iter_one_epoch))
-
-            for i in range(1):
-                "update encoder"
-                err_E_recons_loss, err_E_adversarial_loss, err_E_loss, _ = sess.run(
-                    [reconstruction_loss, e_loss1, e_loss, e_optim], feed_dict={t_image: imgs, t_z: z_prior})
-
-                log = "Epoch [%4d/%4d] %6d time: %4.4fs, e_loss: %8f, e_recons_loss: %8f, e_adverse_loss: %8f" % (
-                    (n_iter+1)//num_of_iter_one_epoch, n_epoch_init, n_iter, time.time() - step_time, err_E_loss, err_E_recons_loss,
-                    err_E_adversarial_loss
-                )
-
-                print (log)
-
-                "update generator"
-                err_G_recons_loss, err_G_adverse_loss, err_G_gen_loss, err_G_loss, _ = sess.run(
-                    [reconstruction_loss, g_loss1, g_loss2, g_loss, g_optim], feed_dict={t_image:imgs, t_z: z_prior}
-                )
-
-                log = "Epoch [%4d/%4d] %6d time: %4.4fs, g_loss: %8f, g_recons_loss: %8f, g_adverse_loss: %8f, g_gen_loss: %8f" % (
-                    (n_iter+1)//num_of_iter_one_epoch, n_epoch_init,n_iter, time.time() - step_time, err_G_loss, err_G_recons_loss,
-                    err_G_adverse_loss, err_G_gen_loss
-                )
-                print (log)
-            n_iter += 1
-    except tf.errors.OutOfRangeError:
-        print ("Done initializing generator and encoder!")
-
-    sess.run(tf.assign(lr_v, lr_init))
-    print ("Traing alpha-GAN with initialized learning rate: %f" % (lr_init))
-
-    img_batch = inputs(filename, batch_size, n_epoch, shuffle_size=4000, is_augment=False, is_resize=True)
+    img_batch = inputs(filename, batch_size, n_epoch, shuffle_size=4000,
+                       is_augment=False, is_resize=True)
     try:
         epoch_time = time.time()
         n_iter = 0
@@ -394,14 +332,21 @@ def train():
                 tl.files.save_npz(net_cd.all_params,
                                   name=checkpoints_dir + '/cd_{}.npz'.format(tl.global_flag['mode']), sess=sess)
 
-            # quick evaluation on train set
             if ( (n_iter + 1) % (num_of_iter_one_epoch * save_every_epoch) == 0):
+                # quick evaluation on train set
                 out = sess.run(net_g_test.outputs,
                                {t_image: test_images})
                 out = (out+1)*127.5
-                print ("gen sub image:", out.shape, out.min(), out.max())
+                print ("reconstructed image:", out.shape, out.min(), out.max())
                 print("[*] save images")
                 tl.vis.save_images(out.astype(np.uint8), [4, 4], save_gan_dir + '/train_%d.png' % ((n_iter + 1) // num_of_iter_one_epoch))
+
+                # quick evaluation on generative performance of generator
+                out1 = sess.run(net_g_test1.outputs, feed_dict={t_z: sampled_z_test})
+                out1 = (out1+1)*127.5
+                print ("generated image:", out1.shape, out1.min(), out1.max())
+                print("[*] save images")
+                tl.vis.save_images(out1.astype(np.uint8), [4, 4], result_dir + '/test_%d.png' % ((n_iter + 1) // num_of_iter_one_epoch))
 
             n_iter += 1
 
@@ -409,8 +354,27 @@ def train():
         print ("training is done")
         pass
 
-def evaluate():
-    pass
+def evaluate(sub='generator', num=16):
+    sess = tf.Session(config=tf.ConfigProto(allow_soft_placement=True, log_device_placement=False))
+    result_dir = './results'
+    mkdir_if_not_exists(result_dir)
+    if sub == 'generator':
+        with tf.name_scope('evaluation'):
+            t_z = tf.placeholder(tf.float32, [num, hidden_dim], name='test_sampled_prior')
+            net_g_test = generator(t_z, is_train=False, reuse=False)
+
+            tl.layers.initialize_global_variables(sess)
+
+            tl.files.load_and_assign_npz(sess=sess,
+                                         name=checkpoints_dir+"/g_{}.npz".format(tl.global_flag['mode']),
+                                         network=net_g_test)
+            sampled_z = np.random.normal(0.0, 1.0, [num, hidden_dim])
+            out = sess.run(net_g_test.outputs,
+                           {t_z: sampled_z})
+            out = (out+1)*127.5
+            print ("gen sub image:", out.shape, out.min(), out.max())
+            print("[*] save images")
+            tl.vis.save_images(out.astype(np.uint8), [4, 4], result_dir+ '/test_'+sub+'.png')
 
 if __name__== "__main__":
 
