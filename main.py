@@ -40,7 +40,7 @@ num_of_update_for_e_g = 2
 
 recons_loss_w = 20.0
 
-save_every_epoch = 10
+save_every_epoch = 5
 
 hidden_dim = 128
 

@@ -5,7 +5,7 @@ from tensorlayer.layers import *
 def encoder(rgb, hidden_dim=128, is_train=True, reuse=False):
     h_dim = hidden_dim
 
-    num_of_resblock = 5
+    num_of_resblock = 4
 
     w_init = tf.truncated_normal_initializer(mean=0.0, stddev=0.02)
     b_init = None
