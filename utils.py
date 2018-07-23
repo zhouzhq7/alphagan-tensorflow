@@ -94,6 +94,7 @@ def load_and_save_to_tfrecord(data_dir, save_dir, name):
             if cnt % 1000 == 0:
                 print ('{}/{}'.format(cnt, len(img_paths)))
             im = misc.imread(img_path)
+            im = misc.imresize(im, [256, 256])
             img_id = img_path.split('/')[-1]
             img_id = parse_image_name_to_image_id(img_id)
             example = tf.train.Example(

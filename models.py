@@ -2,10 +2,10 @@ import tensorflow as tf
 import tensorlayer as tl
 from tensorlayer.layers import *
 
-def encoder(rgb, is_train=True, reuse=False):
-    h_dim = 512
+def encoder(rgb, hidden_dim=128, is_train=True, reuse=False):
+    h_dim = hidden_dim
 
-    num_of_resblock = 4
+    num_of_resblock = 5
 
     w_init = tf.truncated_normal_initializer(mean=0.0, stddev=0.02)
     b_init = None
@@ -84,7 +84,7 @@ def encoder(rgb, is_train=True, reuse=False):
 
     return net, logits
 
-def generator(feat_vec, is_train=True, reuse=False):
+def generator(feat_vec, hidden_dim=128, is_train=True, reuse=False):
 
     w_init = tf.truncated_normal_initializer(stddev=0.02)
     g_init = tf.truncated_normal_initializer(mean=1.0, stddev=0.02)
@@ -97,7 +97,7 @@ def generator(feat_vec, is_train=True, reuse=False):
 
     c_dim = 3
 
-    assert feat_vec.get_shape().as_list()[1:] == [512]
+    assert feat_vec.get_shape().as_list()[1:] == [hidden_dim]
 
     # make sure the size matches if the size of current batch is not batch size
     batch_size = feat_vec.get_shape().as_list()[0]
@@ -109,7 +109,7 @@ def generator(feat_vec, is_train=True, reuse=False):
 
         tl.layers.set_name_reuse(reuse)
 
-        # (512,)
+        # (128,)
         net_in = InputLayer(feat_vec, name='g/in')
 
         # (64*16*4*4=4*4*1024, )

@@ -42,7 +42,7 @@ recons_loss_w = 20.0
 
 save_every_epoch = 10
 
-hidden_dim = 512
+hidden_dim = 128
 
 
 def train():
