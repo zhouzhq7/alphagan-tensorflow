@@ -204,12 +204,10 @@ def train():
     save_gan_dir = "./samples/train_gan"
     save_test_gan_dir = "./samples/test_gan"
     checkpoints_dir = "./checkpoints"
-    pre_trained_model_dir = "./models"
 
     mkdir_if_not_exists(save_gan_dir)
     mkdir_if_not_exists(checkpoints_dir)
-    mkdir_if_not_exists(pre_trained_model_dir)
-
+    mkdir_if_not_exists(save_test_gan_dir)
 
     sess = tf.Session(config=tf.ConfigProto(allow_soft_placement=True, log_device_placement=False))
 
