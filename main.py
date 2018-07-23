@@ -230,13 +230,13 @@ def train():
                                  network=net_d)
 
 
-    num_of_data = 4000
+    num_of_data = 20000
     num_of_iter_one_epoch = num_of_data // batch_size
 
     sess.run(tf.assign(lr_v, lr_init))
     print ("Traing alpha-GAN with initialized learning rate: %f" % (lr_init))
 
-    img_batch = inputs(filename, batch_size, n_epoch, shuffle_size=4000,
+    img_batch = inputs(filename, batch_size, n_epoch, shuffle_size=20000,
                        is_augment=False, is_resize=True)
     try:
         epoch_time = time.time()
