@@ -38,7 +38,7 @@ summary_dir = config.summary_dir
 
 num_of_update_for_e_g = 2
 
-recons_loss_w = 10.0
+recons_loss_w = 20.0
 
 save_every_epoch = 10
 
@@ -201,15 +201,14 @@ def train():
     cd_optim = tf.train.AdamOptimizer(lr_v, beta1=beta1).minimize(cd_loss, var_list=cd_vars)
 
 
-    save_gan_dir = "./samples/{}_gan".format(tl.global_flag['mode'])
+    save_gan_dir = "./samples/train_gan"
+    save_test_gan_dir = "./samples/test_gan"
     checkpoints_dir = "./checkpoints"
     pre_trained_model_dir = "./models"
-    result_dir = './results'
 
     mkdir_if_not_exists(save_gan_dir)
     mkdir_if_not_exists(checkpoints_dir)
     mkdir_if_not_exists(pre_trained_model_dir)
-    mkdir_if_not_exists(result_dir)
 
 
     sess = tf.Session(config=tf.ConfigProto(allow_soft_placement=True, log_device_placement=False))
@@ -251,6 +250,7 @@ def train():
                 )
                 print (log)
                 lr_new = lr_init * (lr_decay**((n_iter+1)//num_of_iter_one_epoch))
+                print ((lr_decay**((n_iter+1)//num_of_iter_one_epoch)))
                 sess.run(tf.assign(lr_v, lr_new))
                 print ("Traing alpha-GAN with new learning rate: %f" % (lr_new))
                 epoch_time = time.time()
@@ -337,14 +337,16 @@ def train():
                 out = (out+1)*127.5
                 print ("reconstructed image:", out.shape, out.min(), out.max())
                 print("[*] save images")
-                tl.vis.save_images(out.astype(np.uint8), [4, 4], save_gan_dir + '/train_%d.png' % ((n_iter + 1) // num_of_iter_one_epoch))
+                tl.vis.save_images(out.astype(np.uint8), [4, 4], save_gan_dir +
+                                   '/train_%d.png' % ((n_iter + 1) // num_of_iter_one_epoch))
 
                 # quick evaluation on generative performance of generator
                 out1 = sess.run(net_g_test1.outputs, feed_dict={t_z: sampled_z_test})
                 out1 = (out1+1)*127.5
                 print ("generated image:", out1.shape, out1.min(), out1.max())
                 print("[*] save images")
-                tl.vis.save_images(out1.astype(np.uint8), [4, 4], result_dir + '/test_%d.png' % ((n_iter + 1) // num_of_iter_one_epoch))
+                tl.vis.save_images(out1.astype(np.uint8), [4, 4], save_test_gan_dir
+                                   + '/test_%d.png' % ((n_iter + 1) // num_of_iter_one_epoch))
 
             n_iter += 1
 
