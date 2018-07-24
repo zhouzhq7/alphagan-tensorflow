@@ -85,7 +85,8 @@ def generator(feat_vec, hidden_dim=128, is_train=True, reuse=False, type='dcgan'
     if type == 'dcgan':
         return generator_dcgan(feat_vec, hidden_dim, is_train, reuse)
     elif type == 'resblk':
-        return generator_resblk(feat_vec, hidden_dim, is_train, reuse)
+        return generator_resblk(feat_vec, num_of_resblk=4,
+                                hidden_dim=hidden_dim, is_train=is_train, reuse=reuse)
     else:
         raise Exception("Generator type is not supported: {}".format(type))
 
