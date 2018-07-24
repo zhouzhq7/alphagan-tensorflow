@@ -4,6 +4,7 @@ import glob
 from scipy import misc
 import tensorflow as tf
 import numpy as np
+import tensorlayer as tl
 
 def load_image(data_dir):
     img_list = glob.glob(data_dir+"/**/*.JPEG")
@@ -122,17 +123,18 @@ def decode(serialized_example):
 
 def augment(img):
     "j"
+    image_size_r = int(256*1.2)
     "1. randomly flip the image from left to right"
     img = tf.image.random_flip_left_right(img)
 
     "2. rotate the image counterclockwise 90 degree"
     img = tf.image.rot90(img, k=1)
 
-    "3. randomly add brightness to image pixels"
-    img = tf.image.random_brightness(img, max_delta=63)
+    img = tf.image.random_flip_up_down(img)
 
-    "4. randomly adjust the contrast"
-    img = tf.image.random_contrast(img, lower=0.2, upper=1.8)
+    img = tf.image.resize_bicubic(img, size=[image_size_r, image_size_r])
+
+    tl.prepro.crop(img, wrg=256, hrg=256, is_random=True)
 
     return img
 
