@@ -42,6 +42,8 @@ recons_loss_w = config.recons_loss_w
 
 save_every_epoch = config.save_every
 
+num_of_resblk = config.num_of_resblk
+
 hidden_dim = config.hidden_dim
 
 
