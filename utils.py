@@ -132,7 +132,7 @@ def augment(img):
 
     img = tf.image.random_flip_up_down(img)
 
-    img = tf.image.resize_bicubic(img, size=[image_size_r, image_size_r])
+    img = tf.image.resize_images(img, size=[image_size_r, image_size_r], method='bicubic')
 
     tl.prepro.crop(img, wrg=256, hrg=256, is_random=True)
 
