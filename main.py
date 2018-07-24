@@ -28,7 +28,6 @@ loss_type = config.loss_type
 "adversarial learning (GAN)"
 n_epoch = config.n_epoch
 lr_decay = config.lr_decay
-decay_every = config.decay_every
 
 "tfrecord data file"
 filename = config.data_tfrecord_dir
