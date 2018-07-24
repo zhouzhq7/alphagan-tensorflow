@@ -205,7 +205,7 @@ def generator_resblk(feat_vec, num_of_resblk=3, hidden_dim=128, is_train=True, r
                                padding='SAME', W_init=w_init, b_init=b_init, name='g/n512s1/c1/%s/%s' % (i, j))
 
                 net_r = BatchNormLayer(net_r, act=tf.nn.relu, is_train=is_train, gamma_init=g_init,
-                                       name='g/n512s1/b1/%s'%i)
+                                       name='g/n512s1/b1/%s/%s'%(i,j))
 
                 net_r = Conv2d(net_r, n_filter=gf_dim//scale_factor, filter_size=filter_size, strides=strides, act=tf.identity,
                                padding='SAME', W_init=w_init, b_init=b_init, name='g/n512s1/c2/%s/%s'%(i,j))
