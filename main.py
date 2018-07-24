@@ -20,9 +20,6 @@ lr_init = config.lr_init
 beta1 = config.beta1
 beta2 = config.beta2
 
-"initialize g"
-n_epoch_init = config.n_epoch_init
-
 "loss"
 loss_type = config.loss_type
 
