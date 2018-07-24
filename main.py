@@ -51,7 +51,8 @@ def train():
 
     t_image = tf.placeholder(tf.float32, [None, 64, 64, 3], name='real_image')
 
-    net_e, z_hat = encoder((t_image/127.5)-1, is_train=True, reuse=False)
+    net_e, z_hat = encoder((t_image/127.5)-1, num_of_resblock=num_of_resblk,
+                           h_dim=hidden_dim, is_train=True, reuse=False)
 
     t_z = tf.placeholder(tf.float32, [None, hidden_dim], name='z_prior')
 
@@ -70,11 +71,12 @@ def train():
     _, d_logits_real = discriminator((t_image/127.5)-1, is_train=True, reuse=True)
 
     "define test network"
-    net_e_test, z_test = encoder((t_image/127.5)-1, is_train=False, reuse=True)
+    net_e_test, z_test = encoder((t_image/127.5)-1, num_of_resblock=num_of_resblk,
+                                 h_dim=hidden_dim, is_train=False, reuse=True)
     net_g_test, _ = generator(z_test, is_train=False, reuse=True)
 
     "define another test network to evaluate the generative performance of generator"
-    net_g_test1, _ = generator(t_z, is_train=False, reuse=True)
+    net_g_test1, _ = generator(t_z, hidden_dim=hidden_dim, is_train=False, reuse=True)
     np.random.seed(42)
     sampled_z_test = np.random.normal(0.0, 1.0, [16, hidden_dim])
 
