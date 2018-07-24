@@ -85,7 +85,7 @@ def generator(feat_vec, hidden_dim=128, is_train=True, reuse=False, type='dcgan'
     if type == 'dcgan':
         return generator_dcgan(feat_vec, hidden_dim, is_train, reuse)
     elif type == 'resblk':
-        return generator_resblk(feat_vec, num_of_resblk=4,
+        return generator_resblk(feat_vec, num_of_resblk=3,
                                 hidden_dim=hidden_dim, is_train=is_train, reuse=reuse)
     else:
         raise Exception("Generator type is not supported: {}".format(type))
@@ -158,7 +158,7 @@ def generator_dcgan(feat_vec, hidden_dim=128, is_train=True, reuse=False):
 
         return net_h4, net_h4.outputs
 
-def generator_resblk(feat_vec, num_of_resblk=4, hidden_dim=128, is_train=True, reuse=False):
+def generator_resblk(feat_vec, num_of_resblk=3, hidden_dim=128, is_train=True, reuse=False):
 
     w_init = tf.truncated_normal_initializer(stddev=0.02)
     g_init = tf.truncated_normal_initializer(mean=1.0, stddev=0.02)
@@ -173,9 +173,6 @@ def generator_resblk(feat_vec, num_of_resblk=4, hidden_dim=128, is_train=True, r
     c_dim = 3
 
     assert feat_vec.get_shape().as_list()[1:] == [hidden_dim]
-
-    # make sure the size matches if the size of current batch is not batch size
-    batch_size = feat_vec.get_shape().as_list()[0]
 
     up_filter_size = (5, 5)
     up_strides = (2, 2)
@@ -203,21 +200,22 @@ def generator_resblk(feat_vec, num_of_resblk=4, hidden_dim=128, is_train=True, r
 
         for i in range(num_of_resblk):
             scale_factor = 2**(i)
-            net_r = Conv2d(net, n_filter=gf_dim//scale_factor , filter_size=filter_size, strides=strides, act=tf.identity,
-                           padding='SAME', W_init=w_init, b_init=b_init, name='g/n512s1/c1/%s' % i)
+            for j in range(2):
+                net_r = Conv2d(net, n_filter=gf_dim//scale_factor , filter_size=filter_size, strides=strides, act=tf.identity,
+                               padding='SAME', W_init=w_init, b_init=b_init, name='g/n512s1/c1/%s/%s' % (i, j))
 
-            net_r = BatchNormLayer(net_r, act=tf.nn.relu, is_train=is_train, gamma_init=g_init,
-                                   name='g/n512s1/b1/%s'%i)
+                net_r = BatchNormLayer(net_r, act=tf.nn.relu, is_train=is_train, gamma_init=g_init,
+                                       name='g/n512s1/b1/%s'%i)
 
-            net_r = Conv2d(net_r, n_filter=gf_dim//scale_factor, filter_size=filter_size, strides=strides, act=tf.identity,
-                           padding='SAME', W_init=w_init, b_init=b_init, name='g/n512s1/c2/%s'%i)
+                net_r = Conv2d(net_r, n_filter=gf_dim//scale_factor, filter_size=filter_size, strides=strides, act=tf.identity,
+                               padding='SAME', W_init=w_init, b_init=b_init, name='g/n512s1/c2/%s/%s'%(i,j))
 
-            net_r = BatchNormLayer(net_r, act=tf.nn.relu, is_train=is_train, gamma_init=g_init,
-                                   name='g/n512s1/b2/%d'%i)
+                net_r = BatchNormLayer(net_r, act=tf.nn.relu, is_train=is_train, gamma_init=g_init,
+                                       name='g/n512s1/b2/%s/%s'%(i,j))
 
-            net_r = ElementwiseLayer([net, net_r], combine_fn=tf.add, name='g/residual_add/%s'%i)
+                net_r = ElementwiseLayer([net, net_r], combine_fn=tf.add, name='g/residual_add/%s/%s'%(i,j))
 
-            net = net_r
+                net = net_r
 
             net = DeConv2d(net, n_filter=gf_dim//(scale_factor*2), filter_size=up_filter_size, strides=up_strides,
                               padding='SAME', W_init=w_init, name='g/h1/deconv2d/%s'%i)
