@@ -36,13 +36,13 @@ filename = config.data_tfrecord_dir
 "summaries"
 summary_dir = config.summary_dir
 
-num_of_update_for_e_g = 2
+num_of_update_for_e_g = config.num_of_update_for_e_g
 
 recons_loss_w = config.recons_loss_w
 
-save_every_epoch = 5
+save_every_epoch = config.save_every
 
-hidden_dim = 128
+hidden_dim = config.hidden_dim
 
 
 def train():

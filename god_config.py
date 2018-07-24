@@ -25,3 +25,8 @@ config.decay_every = int(config.n_epoch/2)
 
 "summaries"
 config.summary_dir = './summary'
+
+config.save_every = 5
+config.num_of_update_for_e_g = 2
+config.hidden_dim = 128
+config.num_of_resblk = 8
