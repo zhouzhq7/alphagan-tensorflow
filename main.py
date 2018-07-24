@@ -38,7 +38,7 @@ summary_dir = config.summary_dir
 
 num_of_update_for_e_g = 2
 
-recons_loss_w = 20.0
+recons_loss_w = config.recons_loss_w
 
 save_every_epoch = 5
 

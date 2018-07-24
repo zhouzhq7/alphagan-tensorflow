@@ -15,7 +15,7 @@ config.beta1 = 0.9
 
 "loss"
 config.loss_type = 'lse'
-
+config.recons_loss_w = 40.0
 "g initialization"
 config.n_epoch_init = 0
 
