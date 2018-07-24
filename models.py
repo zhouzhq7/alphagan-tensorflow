@@ -203,13 +203,13 @@ def generator_resblk(feat_vec, num_of_resblk=4, hidden_dim=128, is_train=True, r
 
         for i in range(num_of_resblk):
             scale_factor = 2**(i)
-            net_r = Conv2d(net, n_filter=gf_dim/scale_factor , filter_size=filter_size, strides=strides, act=tf.identity,
+            net_r = Conv2d(net, n_filter=gf_dim//scale_factor , filter_size=filter_size, strides=strides, act=tf.identity,
                            padding='SAME', W_init=w_init, b_init=b_init, name='g/n512s1/c1/%s' % i)
 
             net_r = BatchNormLayer(net_r, act=tf.nn.relu, is_train=is_train, gamma_init=g_init,
                                    name='g/n512s1/b1/%s'%i)
 
-            net_r = Conv2d(net_r, n_filter=gf_dim/scale_factor, filter_size=filter_size, strides=strides, act=tf.identity,
+            net_r = Conv2d(net_r, n_filter=gf_dim//scale_factor, filter_size=filter_size, strides=strides, act=tf.identity,
                            padding='SAME', W_init=w_init, b_init=b_init, name='g/n512s1/c2/%s'%i)
 
             net_r = BatchNormLayer(net_r, act=tf.nn.relu, is_train=is_train, gamma_init=g_init,
@@ -219,7 +219,7 @@ def generator_resblk(feat_vec, num_of_resblk=4, hidden_dim=128, is_train=True, r
 
             net = net_r
 
-            net = DeConv2d(net, n_filter=gf_dim/(scale_factor*2), filter_size=up_filter_size, strides=up_strides,
+            net = DeConv2d(net, n_filter=gf_dim//(scale_factor*2), filter_size=up_filter_size, strides=up_strides,
                               padding='SAME', W_init=w_init, name='g/h1/deconv2d/%s'%i)
 
             net = BatchNormLayer(net, act=tf.nn.relu, is_train=is_train,
