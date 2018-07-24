@@ -45,6 +45,8 @@ hidden_dim = config.hidden_dim
 
 g_type = config.generator_type
 
+is_augment = config.use_augmentation
+
 def train():
 
     test_images = get_test_images()
@@ -242,7 +244,7 @@ def train():
     print ("Traing alpha-GAN with initialized learning rate: %f" % (lr_init))
 
     img_batch = inputs(filename, batch_size, n_epoch, shuffle_size=20000,
-                       is_augment=False, is_resize=True)
+                       is_augment=is_augment, is_resize=True)
     try:
         epoch_time = time.time()
         n_iter = 0
