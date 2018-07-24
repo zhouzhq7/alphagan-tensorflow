@@ -9,26 +9,25 @@ config.data_tfrecord_dir = './train/dataset_middle.tf'
 
 
 "optimization"
-config.batch_size = 32
+config.batch_size = 64
 config.lr_init = 1e-4
-config.beta1 = 0.9
+config.beta1 = 0.5
+config.beta2 = 0.9
 
 "loss"
 config.loss_type = 'lse'
 config.recons_loss_w = 20.0
-"g initialization"
-config.n_epoch_init = 0
 
 config.n_epoch = 1000
-config.lr_decay = 0.995
+config.lr_decay = 1
 
 "generator type"
-config.generator_type = 'resblk' # or 'dcgan'
+config.generator_type = 'dcgan' # or 'dcgan'
 
 "summaries"
 config.summary_dir = './summary'
 
-config.save_every = 5
+config.save_every = 1
 config.num_of_update_for_e_g = 2
 config.hidden_dim = 128
 config.num_of_resblk = 6

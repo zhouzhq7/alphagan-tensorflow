@@ -18,6 +18,7 @@ parser.add_argument('--mode', type=str, default='train',
 batch_size = config.batch_size
 lr_init = config.lr_init
 beta1 = config.beta1
+beta2 = config.beta2
 
 "initialize g"
 n_epoch_init = config.n_epoch_init
@@ -202,10 +203,10 @@ def train():
     with tf.variable_scope('learning_rate'):
         lr_v = tf.Variable(lr_init, trainable=False)
 
-    e_optim = tf.train.AdamOptimizer(lr_v, beta1=beta1).minimize(e_loss, var_list=e_vars)
-    g_optim = tf.train.AdamOptimizer(lr_v, beta1=beta1).minimize(g_loss, var_list=g_vars)
-    d_optim = tf.train.AdamOptimizer(lr_v, beta1=beta1).minimize(d_loss, var_list=d_vars)
-    cd_optim = tf.train.AdamOptimizer(lr_v, beta1=beta1).minimize(cd_loss, var_list=cd_vars)
+    e_optim = tf.train.AdamOptimizer(lr_v, beta1=beta1, beta2=beta2).minimize(e_loss, var_list=e_vars)
+    g_optim = tf.train.AdamOptimizer(lr_v, beta1=beta1, beta2=beta2).minimize(g_loss, var_list=g_vars)
+    d_optim = tf.train.AdamOptimizer(lr_v, beta1=beta1, beta2=beta2).minimize(d_loss, var_list=d_vars)
+    cd_optim = tf.train.AdamOptimizer(lr_v, beta1=beta1, beta2=beta2).minimize(cd_loss, var_list=cd_vars)
 
 
     save_gan_dir = "./samples/train_gan"
