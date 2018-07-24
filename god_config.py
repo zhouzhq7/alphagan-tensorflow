@@ -22,6 +22,9 @@ config.n_epoch_init = 0
 config.n_epoch = 1000
 config.lr_decay = 0.995
 
+"generator type"
+config.generator_type = 'resblk' # or 'dcgan'
+
 "summaries"
 config.summary_dir = './summary'
 

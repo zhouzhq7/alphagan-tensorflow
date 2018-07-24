@@ -45,6 +45,7 @@ num_of_resblk = config.num_of_resblk
 
 hidden_dim = config.hidden_dim
 
+g_type = config.generator_type
 
 def train():
 
@@ -57,9 +58,10 @@ def train():
 
     t_z = tf.placeholder(tf.float32, [None, hidden_dim], name='z_prior')
 
-    net_g, x_gen = generator(t_z, is_train=True, reuse=False)
 
-    _, x_recons = generator(z_hat, is_train=True, reuse=True)
+    net_g, x_gen = generator(t_z, is_train=True, reuse=False, type=g_type)
+
+    _, x_recons = generator(z_hat, is_train=True, reuse=True, type=g_type)
 
     net_cd, cd_logits_fake = code_discriminator(z_hat, reuse=False)
 
@@ -74,10 +76,12 @@ def train():
     "define test network"
     net_e_test, z_test = encoder((t_image/127.5)-1, num_of_resblock=num_of_resblk,
                                  h_dim=hidden_dim, is_train=False, reuse=True)
-    net_g_test, _ = generator(z_test, is_train=False, reuse=True)
+    net_g_test, _ = generator(z_test, hidden_dim=hidden_dim,
+                              is_train=False, reuse=True, type=g_type)
 
     "define another test network to evaluate the generative performance of generator"
-    net_g_test1, _ = generator(t_z, hidden_dim=hidden_dim, is_train=False, reuse=True)
+    net_g_test1, _ = generator(t_z, hidden_dim=hidden_dim,
+                               is_train=False, reuse=True, type=g_type)
     np.random.seed(42)
     sampled_z_test = np.random.normal(0.0, 1.0, [16, hidden_dim])
 

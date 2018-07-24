@@ -81,7 +81,15 @@ def encoder(rgb, num_of_resblock=4, h_dim=128, is_train=True, reuse=False):
 
     return net, logits
 
-def generator(feat_vec, hidden_dim=128, is_train=True, reuse=False):
+def generator(feat_vec, hidden_dim=128, is_train=True, reuse=False, type='dcgan'):
+    if type == 'dcgan':
+        return generator_dcgan(feat_vec, hidden_dim, is_train, reuse)
+    elif type == 'resblk':
+        return generator_resblk(feat_vec, hidden_dim, is_train, reuse)
+    else:
+        raise Exception("Generator type is not supported: {}".format(type))
+
+def generator_dcgan(feat_vec, hidden_dim=128, is_train=True, reuse=False):
 
     w_init = tf.truncated_normal_initializer(stddev=0.02)
     g_init = tf.truncated_normal_initializer(mean=1.0, stddev=0.02)
@@ -148,6 +156,80 @@ def generator(feat_vec, hidden_dim=128, is_train=True, reuse=False):
         net_h4.outputs = tf.nn.tanh(net_h4.outputs)
 
         return net_h4, net_h4.outputs
+
+def generator_resblk(feat_vec, num_of_resblk=4, hidden_dim=128, is_train=True, reuse=False):
+
+    w_init = tf.truncated_normal_initializer(stddev=0.02)
+    g_init = tf.truncated_normal_initializer(mean=1.0, stddev=0.02)
+    b_init = None
+
+    image_size = 64
+
+    s2, s4, s8, s16 = int(image_size/2), int(image_size/4), int(image_size/8), int(image_size/16),
+
+    gf_dim = 512
+
+    c_dim = 3
+
+    assert feat_vec.get_shape().as_list()[1:] == [hidden_dim]
+
+    # make sure the size matches if the size of current batch is not batch size
+    batch_size = feat_vec.get_shape().as_list()[0]
+
+    up_filter_size = (5, 5)
+    up_strides = (2, 2)
+
+    filter_size = (3, 3)
+    strides = (1, 1)
+
+    with tf.variable_scope('generator', reuse=reuse):
+
+        tl.layers.set_name_reuse(reuse)
+
+        # (128,)
+        net = InputLayer(feat_vec, name='g/in')
+
+        # (4*4*512, )
+        net = DenseLayer(net, n_units=gf_dim*s16*s16, W_init=w_init,
+                            act = tf.identity, name='g/h0/lin')
+
+
+        # (4, 4, 512)
+        net = ReshapeLayer(net, shape=[-1, s16, s16, gf_dim], name="g/h0/reshape")
+
+        net = BatchNormLayer(net, act=tf.nn.relu, is_train=is_train,
+                                gamma_init=g_init, name='g/h0/batch_norm')
+
+        for i in range(num_of_resblk):
+            scale_factor = 2**(i)
+            net_r = Conv2d(net, n_filter=gf_dim/scale_factor , filter_size=filter_size, strides=strides, act=tf.identity,
+                           padding='SAME', W_init=w_init, b_init=b_init, name='g/n512s1/c1/%s' % i)
+
+            net_r = BatchNormLayer(net_r, act=tf.nn.relu, is_train=is_train, gamma_init=g_init,
+                                   name='g/n512s1/b1/%s'%i)
+
+            net_r = Conv2d(net_r, n_filter=gf_dim/scale_factor, filter_size=filter_size, strides=strides, act=tf.identity,
+                           padding='SAME', W_init=w_init, b_init=b_init, name='g/n512s1/c2/%s'%i)
+
+            net_r = BatchNormLayer(net_r, act=tf.nn.relu, is_train=is_train, gamma_init=g_init,
+                                   name='g/n512s1/b2/%d'%i)
+
+            net_r = ElementwiseLayer([net, net_r], combine_fn=tf.add, name='g/residual_add/%s'%i)
+
+            net = net_r
+
+            net = DeConv2d(net, n_filter=gf_dim/(scale_factor*2), filter_size=up_filter_size, strides=up_strides,
+                              padding='SAME', W_init=w_init, name='g/h1/deconv2d/%s'%i)
+
+            net = BatchNormLayer(net, act=tf.nn.relu, is_train=is_train,
+                                    gamma_init=g_init, name='g/h1/batch_norm/%d'%i)
+
+        net = DeConv2d(net, n_filter=c_dim, filter_size=up_filter_size, strides=up_strides,
+                       padding='SAME', W_init=w_init, name='g/h4/deconv2d')
+
+        net.outputs = tf.nn.tanh(net.outputs)
+
+        return net, net.outputs
 
 def discriminator(inputs, is_train=True, reuse=False):
 
