@@ -36,6 +36,7 @@ summary_dir = config.summary_dir
 num_of_update_for_e_g = config.num_of_update_for_e_g
 
 recons_loss_w = config.recons_loss_w
+e_adverse_loss_w = config.e_adverse_loss_w
 
 save_every_epoch = config.save_every
 
@@ -92,10 +93,10 @@ def train():
 
     with tf.name_scope('s_encoder'):
         if loss_type == 'lse':
-            e_loss1 = tf.reduce_mean(tf.squared_difference(cd_logits_fake,
+            e_loss1 = e_adverse_loss_w*tf.reduce_mean(tf.squared_difference(cd_logits_fake,
                                                            tf.ones_like(cd_logits_fake)))
         else:
-            e_loss1 = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(
+            e_loss1 = e_adverse_loss_w*tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(
                 logits=cd_logits_fake, labels=tf.ones_like(cd_logits_fake)))
 
         e_loss = e_loss1 + reconstruction_loss
