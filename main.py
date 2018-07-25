@@ -237,7 +237,7 @@ def train():
                                  network=net_d)
 
 
-    num_of_data = 20000
+    num_of_data = 35109
     num_of_iter_one_epoch = num_of_data // batch_size
 
     sess.run(tf.assign(lr_v, lr_init))

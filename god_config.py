@@ -5,11 +5,11 @@ config = edict()
 
 "data and check point directories"
 config.raw_image_dir = ''
-config.data_tfrecord_dir = './train/dataset_middle.tf'
+config.data_tfrecord_dir = './train/dataset_middle1.tf'
 
 
 "optimization"
-config.batch_size = 32
+config.batch_size = 64
 config.lr_init = 1e-4
 config.beta1 = 0.5
 config.beta2 = 0.9
@@ -31,4 +31,4 @@ config.summary_dir = './summary'
 config.save_every = 1
 config.num_of_update_for_e_g = 2
 config.hidden_dim = 128
-config.num_of_resblk = 8
+config.num_of_resblk = 6
