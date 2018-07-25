@@ -246,7 +246,7 @@ def train():
     print ("Traing alpha-GAN with initialized learning rate: %f" % (lr_init))
 
     img_batch = inputs(filename, batch_size, n_epoch, shuffle_size=20000,
-                       is_augment=is_augment, is_resize=True)
+                       is_augment=is_augment, is_resize=False)
     try:
         epoch_time = time.time()
         n_iter = 0

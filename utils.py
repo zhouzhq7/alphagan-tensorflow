@@ -53,7 +53,6 @@ def get_test_images(dir='./train_samples'):
     imgs = []
     for img_path in img_paths:
         im = misc.imread(img_path)
-        im = misc.imresize(im, [64, 64])
         imgs.append(im)
 
     return np.array(imgs)
