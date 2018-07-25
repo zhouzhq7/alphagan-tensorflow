@@ -113,13 +113,13 @@ def train():
         if loss_type == 'lse':
             g_loss1 = tf.reduce_mean(tf.squared_difference(d_logits_fake1,
                                                            tf.ones_like(d_logits_fake1)))
-        else:
+        elif loss_type == 'sigmoid':
             g_loss1 = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=d_logits_fake1,
                                                                      labels=tf.ones_like(d_logits_fake1)))
         if loss_type == 'lse':
             g_loss2 = tf.reduce_mean(tf.squared_difference(d_logits_fake2,
                                                            tf.ones_like(d_logits_fake2)))
-        else:
+        elif loss_type == 'sigmoid':
             g_loss2 = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=d_logits_fake2,
                                                                      labels=tf.ones_like(d_logits_fake2)))
 
@@ -141,21 +141,21 @@ def train():
         if loss_type == 'lse':
             d_loss1 = tf.reduce_mean(tf.squared_difference(d_logits_fake1,
                                                            tf.zeros_like(d_logits_fake1)))
-        else:
+        elif loss_type == 'sigmoid':
             d_loss1 = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=d_logits_fake1,
                                                               labels=tf.zeros_like(d_logits_fake1)))
 
         if loss_type == 'lse':
             d_loss2 = tf.reduce_mean(tf.squared_difference(d_logits_fake2,
                                                            tf.zeros_like(d_logits_fake2)))
-        else:
+        elif loss_type == 'sigmoid':
             d_loss2 = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=d_logits_fake2,
                                                               labels=tf.zeros_like(d_logits_fake2)))
 
         if loss_type == 'lse':
             d_loss3 = tf.reduce_mean(tf.squared_difference(d_logits_real,
                                                            tf.ones_like(d_logits_real)))
-        else:
+        elif loss_type == 'sigmoid':
             d_loss3 = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=d_logits_real,
                                                               labels=tf.ones_like(d_logits_real)))
 

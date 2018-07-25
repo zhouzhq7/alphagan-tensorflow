@@ -15,7 +15,7 @@ config.beta1 = 0.5
 config.beta2 = 0.9
 
 "loss"
-config.loss_type = 'lse'
+config.loss_type = 'sigmoid'
 config.recons_loss_w = 40.0
 
 config.n_epoch = 1000
