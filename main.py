@@ -48,11 +48,12 @@ g_type = config.generator_type
 
 is_augment = config.use_augmentation
 
+image_size = 256
 def train():
 
     test_images = get_test_images()
 
-    t_image = tf.placeholder(tf.float32, [None, 64, 64, 3], name='real_image')
+    t_image = tf.placeholder(tf.float32, [None, image_size, image_size, 3], name='real_image')
 
     net_e, z_hat = encoder((t_image/127.5)-1, num_of_resblock=num_of_resblk,
                            h_dim=hidden_dim, is_train=True, reuse=False)
