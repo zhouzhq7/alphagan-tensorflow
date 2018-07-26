@@ -13,7 +13,7 @@ def encoder(rgb, num_of_resblock=4, h_dim=128, is_train=True, reuse=False):
     filter_size = (3, 3)
     strides = (1, 1)
 
-    down_filter_size = (5, 5)
+    down_filter_size = (3, 3)
     down_strides = (2, 2)
 
     with tf.variable_scope('encoder', reuse=reuse):
@@ -41,23 +41,16 @@ def encoder(rgb, num_of_resblock=4, h_dim=128, is_train=True, reuse=False):
         net = BatchNormLayer(net, act=tf.nn.relu, is_train=is_train, gamma_init=g_init,
                              name='e/n128s2/b0')
 
-        # (4, 4, 256)
-        net = Conv2d(net, n_filter=gf_dim*8, filter_size=down_filter_size, strides=down_strides,
-                     act=tf.nn.relu, padding='SAME', W_init=w_init, name='e/n256s2/c0')
-
-        net = BatchNormLayer(net, act=tf.nn.relu, is_train=is_train, gamma_init=g_init,
-                             name='e/n256s2/b0')
-
         temp = net
 
         ################################# Residual block ############################################
         for i in range(num_of_resblock):
-            net_r = Conv2d(net, n_filter=gf_dim*8, filter_size=filter_size, strides=strides, act=tf.identity,
+            net_r = Conv2d(net, n_filter=gf_dim*4, filter_size=filter_size, strides=strides, act=tf.identity,
                            padding='SAME', W_init=w_init, b_init=b_init, name='e/n256s1/c1/%s' % i)
 
             net_r = BatchNormLayer(net_r, act=tf.nn.relu, is_train=is_train, gamma_init=g_init, name='e/n64s1/b1/%s' % i)
 
-            net_r = Conv2d(net_r, n_filter=gf_dim*8, filter_size=filter_size, strides=strides, act=tf.identity,
+            net_r = Conv2d(net_r, n_filter=gf_dim*4, filter_size=filter_size, strides=strides, act=tf.identity,
                            padding='SAME', W_init=w_init, b_init=b_init, name='e/n256s1/c2/%s' % i)
 
             net_r = BatchNormLayer(net_r, act=tf.nn.relu, is_train=is_train, gamma_init=g_init, name='e/n64s1/b2/%s' % i)
@@ -66,7 +59,7 @@ def encoder(rgb, num_of_resblock=4, h_dim=128, is_train=True, reuse=False):
 
             net = net_r
 
-        net = Conv2d(net, n_filter=gf_dim*8, filter_size=filter_size, strides=strides, act=tf.identity,
+        net = Conv2d(net, n_filter=gf_dim*4, filter_size=filter_size, strides=strides, act=tf.identity,
                      W_init=w_init, b_init=b_init, name='e/n256s1/c/m')
 
         net = BatchNormLayer(net, is_train=is_train, gamma_init=g_init, name='e/n256s1/b/m')
@@ -108,7 +101,7 @@ def generator_dcgan(feat_vec, hidden_dim=128, is_train=True, reuse=False):
     # make sure the size matches if the size of current batch is not batch size
     batch_size = feat_vec.get_shape().as_list()[0]
 
-    filter_size = (5, 5)
+    filter_size = (3, 3)
     strides = (2, 2)
 
     with tf.variable_scope('generator', reuse=reuse):
