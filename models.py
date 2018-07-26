@@ -8,7 +8,7 @@ def encoder(rgb, num_of_resblock=4, h_dim=128, is_train=True, reuse=False):
     b_init = None
     g_init = tf.truncated_normal_initializer(mean=1.0, stddev=0.02)
 
-    gf_dim = 32
+    gf_dim = 64
 
     filter_size = (3, 3)
     strides = (1, 1)
@@ -23,18 +23,18 @@ def encoder(rgb, num_of_resblock=4, h_dim=128, is_train=True, reuse=False):
         # (64, 64 3)
         net = InputLayer(rgb, name='e/in')
 
-        # (32, 32, 32)
+        # (32, 32, 64)
         net = Conv2d(net, n_filter=gf_dim, filter_size=down_filter_size, strides=down_strides,
                      act=tf.nn.relu, padding='SAME', W_init=w_init, name='e/n32s2/c0')
 
-        # (16, 16, 64)
+        # (16, 16, 128)
         net = Conv2d(net, n_filter=gf_dim * 2, filter_size=down_filter_size, strides=down_strides,
                      act=tf.nn.relu, padding='SAME', W_init=w_init, name='e/n64s2/c0')
 
         net = BatchNormLayer(net, act=tf.nn.relu, is_train=is_train, gamma_init=g_init,
                              name='e/n64s2/b0')
 
-        # (8, 8, 128)
+        # (8, 8, 256)
         net = Conv2d(net, n_filter=gf_dim*4, filter_size=down_filter_size, strides=down_strides,
                      act=tf.nn.relu, padding='SAME', W_init=w_init, name='e/n128s2/c0')
 

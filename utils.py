@@ -95,7 +95,7 @@ def load_and_save_to_tfrecord(data_dir, save_dir, name):
             if cnt % 1000 == 0:
                 print ('{}/{}'.format(cnt, len(img_paths)))
             im = misc.imread(img_path)
-            im = misc.imresize(im, [256, 256])
+            im = misc.imresize(im, [64, 64])
             img_id = img_path.split('/')[-1]
             img_id = parse_image_name_to_image_id(img_id)
             example = tf.train.Example(
@@ -115,15 +115,15 @@ def decode(serialized_example):
     )
     image = tf.decode_raw(features['image_raw'], tf.uint8)
 
-    image.set_shape((256*256*3))
+    image.set_shape((64*64*3))
 
-    image = tf.reshape(image, (256, 256, 3))
+    image = tf.reshape(image, (64, 64, 3))
 
     return image
 
 def augment(img):
     "j"
-    image_size_r = int(256*1.2)
+    image_size_r = int(64*1.2)
     "1. randomly flip the image from left to right"
     img = tf.image.random_flip_left_right(img)
 
@@ -134,7 +134,7 @@ def augment(img):
 
     img = tf.image.resize_images(img, size=[image_size_r, image_size_r], method=tf.image.ResizeMethod.BICUBIC)
 
-    img = tf.random_crop(img, [256, 256, 3])
+    img = tf.random_crop(img, [64, 64, 3])
 
     return img
 
@@ -150,9 +150,6 @@ def inputs(filename, batch_size, num_epochs, shuffle_size, is_augment, is_resize
 
         if is_augment:
             dataset = dataset.map(augment)
-
-        if is_resize:
-            dataset = dataset.map(resize)
 
         dataset = dataset.shuffle(buffer_size=shuffle_size)
 
