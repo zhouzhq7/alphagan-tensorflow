@@ -38,6 +38,8 @@ num_of_update_for_e_g = config.num_of_update_for_e_g
 recons_loss_w = config.recons_loss_w
 e_adverse_loss_w = config.e_adverse_loss_w
 
+g_gen_loss_w = config.g_gen_loss_w
+
 save_every_epoch = config.save_every
 
 num_of_resblk = config.num_of_resblk
@@ -118,10 +120,10 @@ def train():
             g_loss1 = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=d_logits_fake1,
                                                                      labels=tf.ones_like(d_logits_fake1)))
         if loss_type == 'lse':
-            g_loss2 = tf.reduce_mean(tf.squared_difference(d_logits_fake2,
+            g_loss2 = g_gen_loss_w*tf.reduce_mean(tf.squared_difference(d_logits_fake2,
                                                            tf.ones_like(d_logits_fake2)))
         elif loss_type == 'sigmoid':
-            g_loss2 = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=d_logits_fake2,
+            g_loss2 = g_gen_loss_w*tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=d_logits_fake2,
                                                                      labels=tf.ones_like(d_logits_fake2)))
 
         g_loss = reconstruction_loss + g_loss1 + g_loss2
