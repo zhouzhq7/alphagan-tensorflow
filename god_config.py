@@ -5,8 +5,8 @@ config = edict()
 
 "data and check point directories"
 config.raw_image_dir = ''
-config.data_tfrecord_dir = './train/cifar10.tf'
-config.num_of_data = 50000
+config.data_tfrecord_dir = './train/whole_dataset.tf'
+config.num_of_data = 186961
 
 
 "optimization"
@@ -21,7 +21,7 @@ config.recons_loss_w = 40.0
 config.e_adverse_loss_w = 8.0
 config.g_gen_loss_w = 4.0
 
-config.n_epoch = 1000
+config.n_epoch = 100
 config.lr_decay = 0.99
 
 "generator type"
