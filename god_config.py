@@ -18,6 +18,7 @@ config.beta2 = 0.9
 config.loss_type = 'sigmoid'
 config.recons_loss_w = 40.0
 config.e_adverse_loss_w = 8.0
+config.g_gen_loss_w = 8.0
 
 config.n_epoch = 1000
 config.lr_decay = 1
@@ -33,3 +34,5 @@ config.save_every = 1
 config.num_of_update_for_e_g = 2
 config.hidden_dim = 128
 config.num_of_resblk = 9
+
+config.num_of_data = 5000

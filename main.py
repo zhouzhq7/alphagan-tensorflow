@@ -49,6 +49,11 @@ g_type = config.generator_type
 is_augment = config.use_augmentation
 
 image_size = 256
+
+num_of_data = config.num_of_data
+
+g_gen_loss_w = config.g_gen_loss_w
+
 def train():
 
     test_images = get_test_images()
@@ -119,10 +124,10 @@ def train():
             g_loss1 = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=d_logits_fake1,
                                                                      labels=tf.ones_like(d_logits_fake1)))
         if loss_type == 'lse':
-            g_loss2 = tf.reduce_mean(tf.squared_difference(d_logits_fake2,
+            g_loss2 = g_gen_loss_w*tf.reduce_mean(tf.squared_difference(d_logits_fake2,
                                                            tf.ones_like(d_logits_fake2)))
         elif loss_type == 'sigmoid':
-            g_loss2 = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=d_logits_fake2,
+            g_loss2 = g_gen_loss_w*tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=d_logits_fake2,
                                                                      labels=tf.ones_like(d_logits_fake2)))
 
         g_loss = reconstruction_loss + g_loss1 + g_loss2
@@ -239,7 +244,6 @@ def train():
                                  network=net_d)
 
 
-    num_of_data = 35109
     num_of_iter_one_epoch = num_of_data // batch_size
 
     sess.run(tf.assign(lr_v, lr_init))
