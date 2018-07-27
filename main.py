@@ -50,6 +50,7 @@ g_type = config.generator_type
 
 is_augment = config.use_augmentation
 
+num_of_data = config.num_of_data
 def train():
 
     test_images = get_test_images()
@@ -240,7 +241,6 @@ def train():
                                  network=net_d)
 
 
-    num_of_data = 35109
     num_of_iter_one_epoch = num_of_data // batch_size
 
     sess.run(tf.assign(lr_v, lr_init))

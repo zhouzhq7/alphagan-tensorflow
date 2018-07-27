@@ -5,7 +5,8 @@ config = edict()
 
 "data and check point directories"
 config.raw_image_dir = ''
-config.data_tfrecord_dir = './train/dataset_middle1.tf'
+config.data_tfrecord_dir = './train/cifar10.tf'
+config.num_of_data = 50000
 
 
 "optimization"
