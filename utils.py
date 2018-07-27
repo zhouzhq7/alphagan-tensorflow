@@ -49,7 +49,7 @@ def mkdir_if_not_exists(dir):
         os.makedirs(dir)
 
 def get_test_images(dir='./train_samples'):
-    img_paths = glob.glob(dir+'/*.JPEG')
+    img_paths = glob.glob(dir+'/*')
     imgs = []
     for img_path in img_paths:
         im = misc.imread(img_path)

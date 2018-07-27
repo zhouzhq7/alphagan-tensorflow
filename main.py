@@ -87,7 +87,7 @@ def train():
     net_g_test1, _ = generator(t_z, hidden_dim=hidden_dim,
                                is_train=False, reuse=True, type=g_type)
     np.random.seed(42)
-    sampled_z_test = np.random.normal(0.0, 1.0, [16, hidden_dim])
+    sampled_z_test = np.random.normal(0.0, 1.0, [64, hidden_dim])
 
     "auto encoder loss"
     reconstruction_loss = recons_loss_w*tf.reduce_mean(tf.losses.absolute_difference(
@@ -345,7 +345,7 @@ def train():
                 out = (out+1)*127.5
                 print ("reconstructed image:", out.shape, out.min(), out.max())
                 print("[*] save images")
-                tl.vis.save_images(out.astype(np.uint8), [4, 4], save_gan_dir +
+                tl.vis.save_images(out.astype(np.uint8), [8, 8], save_gan_dir +
                                    '/train_%d.png' % ((n_iter + 1) // num_of_iter_one_epoch))
 
                 # quick evaluation on generative performance of generator
@@ -353,7 +353,7 @@ def train():
                 out1 = (out1+1)*127.5
                 print ("generated image:", out1.shape, out1.min(), out1.max())
                 print("[*] save images")
-                tl.vis.save_images(out1.astype(np.uint8), [4, 4], save_test_gan_dir
+                tl.vis.save_images(out1.astype(np.uint8), [8, 8], save_test_gan_dir
                                    + '/test_%d.png' % ((n_iter + 1) // num_of_iter_one_epoch))
 
             n_iter += 1
