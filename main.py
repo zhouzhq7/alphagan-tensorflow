@@ -385,15 +385,62 @@ def evaluate(sub='generator', num=16):
             print("[*] save images")
             tl.vis.save_images(out.astype(np.uint8), [4, 4], result_dir+ '/test_'+sub+'.png')
 
+def encode():
+    sess = tf.Session(config=tf.ConfigProto(allow_soft_placement=True, log_device_placement=False))
+    result_dir = './results'
+    checkpoints_dir = "./checkpoints"
+    mkdir_if_not_exists(result_dir)
+    with tf.name_scope('evaluation'):
+        t_image = tf.placeholder(tf.float32, [None, 64, 64, 3], name='Input_images')
+        net_e_test, z_test = encoder((t_image/127.5)-1, num_of_resblock=num_of_resblk,
+                                     h_dim=hidden_dim, is_train=False, reuse=True)
+        tl.files.load_and_assign_npz(sess=sess,
+                                     name=checkpoints_dir+"/e_train.npz", network=net_e_test)
+
+        encoded_feats = []
+        images_dir = './data'
+
+        image_paths = glob.glob(images_dir+'/*')
+
+        image_ids = []
+        images = []
+
+        for img_path in image_paths:
+            image_id = img_path.split('/')[-1]
+            im = misc.imread(img_path)
+            im = misc.imresize(im, [64, 64])
+
+            image_ids = np.vstack((image_ids, image_id))
+            images = np.vstack((images, im))
+
+        num_of_sample = images.shape[0]
+
+        num_of_batches = (num_of_sample // batch_size) + 1
+
+        for i in range(num_of_batches):
+            start_idx = i*batch_size
+            end_idx = (i+1)*batch_size
+            cur_batch = images[start_idx:end_idx, :,:,:]
+            cur_encoded_feat = sess.run(z_test, feed_dict={t_image: cur_batch})
+            encoded_feats = np.vstack((encoded_feats, cur_encoded_feat))
+
+        tl.files.save_any_to_npy({'image_ids':image_ids, 'encoded_feats':encoded_feats}, name='./data/encoded_feat.npz')
+
+
+
 if __name__== "__main__":
 
     args = parser.parse_args()
 
     tl.global_flag['mode'] = args.mode
 
+    args.mode = 'encode'
+
     if args.mode == 'train':
         train()
     elif args.mode == 'evaluate':
         evaluate()
+    elif args.mode == 'encode':
+        encode()
     else:
         raise Exception('Unknow mode {}'.format(args.mode))
